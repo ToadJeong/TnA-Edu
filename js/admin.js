@@ -11,27 +11,57 @@ import { ADMIN_PASSWORD } from "./firebase-config.js";
 const $ = (id) => document.getElementById(id);
 
 // ── 문제 텍스트 ↔ 단어배열 변환 ──────────────────────────────────────
-// 한 줄 = "정답, 힌트"  (첫 번째 쉼표만 구분자로 사용)
+// 두 가지 입력 형식을 지원합니다.
+//  1) 자동 배치(간단)  :  정답, 힌트
+//        - 글자가 겹치는 곳을 자동으로 찾아 교차 배치합니다.
+//  2) 수동 배치(인쇄본과 동일):  정답 | 힌트 | 방향 | 행 | 열 | 번호
+//        - 방향은 "가로" 또는 "세로", 행/열/번호는 숫자.
+//        - 힌트에 쉼표(,)가 들어가도 됩니다(구분자는 | 이므로).
+// 텍스트 안에 '|' 가 하나라도 있으면 전체를 수동 배치 형식으로 해석합니다.
 function parseWords(text) {
+  const usePipe = text.includes("|");
   return text
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
     .map((line) => {
+      if (usePipe) {
+        const p = line.split("|").map((s) => s.trim());
+        const dirKo = p[2] || "";
+        const word = { answer: p[0] || "", clue: p[1] || "" };
+        if (dirKo === "가로" || dirKo === "세로") {
+          word.dir = dirKo === "세로" ? "down" : "across";
+          word.row = Number(p[3]);
+          word.col = Number(p[4]);
+          if (p[5] !== undefined && p[5] !== "") word.num = Number(p[5]);
+        }
+        return word;
+      }
+      // 쉼표 형식: 첫 번째 쉼표까지가 정답, 나머지는 힌트
       const i = line.indexOf(",");
-      if (i === -1) return { answer: line.trim(), clue: "" };
-      return {
-        answer: line.slice(0, i).trim(),
-        clue: line.slice(i + 1).trim(),
-      };
+      if (i === -1) return { answer: line, clue: "" };
+      return { answer: line.slice(0, i).trim(), clue: line.slice(i + 1).trim() };
     })
     .filter((w) => w.answer.length > 0);
 }
 
 function wordsToText(words) {
-  return (words || [])
-    .map((w) => (w.clue ? `${w.answer}, ${w.clue}` : w.answer))
-    .join("\n");
+  const list = words || [];
+  // 좌표가 지정된 단어가 하나라도 있으면 수동 배치(파이프) 형식으로 출력
+  const manual = list.some(
+    (w) => w.dir && Number.isFinite(w.row) && Number.isFinite(w.col)
+  );
+  if (manual) {
+    return list
+      .map((w) => {
+        const dirKo = w.dir === "down" ? "세로" : "가로";
+        return [w.answer, w.clue || "", dirKo, w.row, w.col, w.num ?? ""].join(
+          " | "
+        );
+      })
+      .join("\n");
+  }
+  return list.map((w) => (w.clue ? `${w.answer}, ${w.clue}` : w.answer)).join("\n");
 }
 
 function renderPreview() {

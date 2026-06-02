@@ -21,6 +21,6 @@ export const ADMIN_PASSWORD = "tna2026";
 // 행사 제목 등 기본 화면 문구
 export const EVENT = {
   org: "CJ ENM · T&A사업부",
-  title: "가로세로 낱말퀴즈",
-  subtitle: "선착순 정답자 이벤트",
+  title: "컴플라이언스 가로세로 낱말퀴즈",
+  subtitle: "2026년 협력사 교육 · 선착순 정답자 이벤트",
 };

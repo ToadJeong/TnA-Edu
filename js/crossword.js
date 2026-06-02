@@ -7,9 +7,12 @@ export function splitSyllables(word) {
   return Array.from((word || "").trim());
 }
 
-// words: [{ answer, clue }]
+// words: [{ answer, clue, dir?, row?, col?, num? }]
 // 반환: { placed:[{answer, clue, row, col, dir, number, cells:[{r,c,ch}]}], rows, cols }
 // dir: "across"(가로) | "down"(세로)
+//
+// 모든 단어가 dir/row/col 좌표를 가지면 "수동 배치 모드"로 인쇄본과 동일하게 배치하고,
+// 좌표가 없으면 기존처럼 글자 교차를 찾아 "자동 배치"합니다.
 export function buildLayout(words) {
   const items = (words || [])
     .filter((w) => w && w.answer && w.answer.trim().length > 0)
@@ -17,7 +20,21 @@ export function buildLayout(words) {
       answer: w.answer.trim(),
       clue: (w.clue || "").trim(),
       syl: splitSyllables(w.answer),
+      dir: w.dir,
+      row: w.row,
+      col: w.col,
+      num: w.num,
     }));
+
+  const isManual =
+    items.length > 0 &&
+    items.every(
+      (w) =>
+        Number.isFinite(w.row) &&
+        Number.isFinite(w.col) &&
+        (w.dir === "across" || w.dir === "down")
+    );
+  if (isManual) return manualLayout(items);
 
   // 긴 단어를 먼저 배치하면 교차점을 더 많이 만들 수 있음
   items.sort((a, b) => b.syl.length - a.syl.length);
@@ -152,6 +169,77 @@ export function buildLayout(words) {
   }
 
   return { placed, rows, cols };
+}
+
+// 수동 배치: 각 단어의 dir/row/col 좌표를 그대로 사용해 인쇄본과 동일하게 구성.
+// 단어에 num(번호)이 있으면 그 번호를 사용하고, 없으면 읽기 순서로 자동 부여.
+function manualLayout(items) {
+  const placed = [];
+  for (const item of items) {
+    const dr = item.dir === "down" ? 1 : 0;
+    const dc = item.dir === "across" ? 1 : 0;
+    const cells = [];
+    for (let i = 0; i < item.syl.length; i++) {
+      cells.push({
+        r: item.row + dr * i,
+        c: item.col + dc * i,
+        ch: item.syl[i],
+      });
+    }
+    placed.push({
+      answer: item.answer,
+      clue: item.clue,
+      row: item.row,
+      col: item.col,
+      dir: item.dir,
+      num: item.num,
+      cells,
+    });
+  }
+
+  // 좌표를 0부터 시작하도록 정규화
+  let minR = Infinity,
+    minC = Infinity,
+    maxR = -Infinity,
+    maxC = -Infinity;
+  for (const p of placed) {
+    for (const cell of p.cells) {
+      minR = Math.min(minR, cell.r);
+      minC = Math.min(minC, cell.c);
+      maxR = Math.max(maxR, cell.r);
+      maxC = Math.max(maxC, cell.c);
+    }
+  }
+  for (const p of placed) {
+    p.row -= minR;
+    p.col -= minC;
+    for (const cell of p.cells) {
+      cell.r -= minR;
+      cell.c -= minC;
+    }
+  }
+
+  // 번호: 지정된 num을 우선 사용, 없으면 읽기 순서(행→열)로 자동 부여
+  const hasAllNums = placed.every((p) => Number.isFinite(p.num));
+  if (hasAllNums) {
+    for (const p of placed) p.number = p.num;
+  } else {
+    const starts = placed
+      .map((p) => ({ r: p.row, c: p.col, p }))
+      .sort((a, b) => a.r - b.r || a.c - b.c);
+    let num = 0;
+    const numAt = new Map();
+    for (const s of starts) {
+      const k = s.r + "," + s.c;
+      if (!numAt.has(k)) {
+        num++;
+        numAt.set(k, num);
+      }
+      s.p.number = numAt.get(k);
+    }
+  }
+
+  return { placed, rows: maxR - minR + 1, cols: maxC - minC + 1 };
 }
 
 // 레이아웃을 DOM 그리드로 렌더링
