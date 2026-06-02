@@ -618,3 +618,6 @@ button:active { transform: translateY(1px) scale(0.99); }
   background: #ffd9d4 !important;
   box-shadow: inset 0 0 0 2px var(--brand2);
 }
+/* 에디터 미리보기: 단어를 마우스로 끌어 이동 */
+.cw-draggable .cw-input { cursor: grab; touch-action: none; }
+.cw-draggable .cw-cell.cw-blank { cursor: default; }

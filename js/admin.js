@@ -4,15 +4,15 @@ import {
   renderGrid,
   packComponents,
   splitSyllables,
-} from "./crossword.js?v=9";
+} from "./crossword.js?v=11";
 import {
   loadPuzzle,
   savePuzzle,
   listSubmissions,
   clearSubmissions,
   isConfigured,
-} from "./store.js?v=9";
-import { ADMIN_PASSWORD } from "./firebase-config.js?v=9";
+} from "./store.js?v=11";
+import { ADMIN_PASSWORD } from "./firebase-config.js?v=11";
 
 const $ = (id) => document.getElementById(id);
 
@@ -69,14 +69,102 @@ function analyze(words) {
   return { layout, bad, msgs: [...new Set(msgs)] };
 }
 
+// 정규화 좌표 기준 "칸 -> 그 칸을 지나는 단어 index 목록"
+function normCellMap(words) {
+  let minR = Infinity,
+    minC = Infinity;
+  const cellsList = words.map((w) => {
+    if (!w.answer || !(w.dir === "across" || w.dir === "down")) return [];
+    const dr = w.dir === "down" ? 1 : 0,
+      dc = w.dir === "across" ? 1 : 0;
+    return splitSyllables(w.answer).map((ch, i) => ({
+      r: w.row + dr * i,
+      c: w.col + dc * i,
+    }));
+  });
+  for (const cells of cellsList)
+    for (const cl of cells) {
+      minR = Math.min(minR, cl.r);
+      minC = Math.min(minC, cl.c);
+    }
+  if (!isFinite(minR)) {
+    minR = 0;
+    minC = 0;
+  }
+  const byKey = new Map();
+  cellsList.forEach((cells, idx) =>
+    cells.forEach((cl) => {
+      const k = cl.r - minR + "," + (cl.c - minC);
+      if (!byKey.has(k)) byKey.set(k, []);
+      byKey.get(k).push(idx);
+    })
+  );
+  return byKey;
+}
+
+// 드래그 상태(미리보기 재생성과 무관하게 유지되도록 모듈 스코프)
+let drag = null;
+function onDragMove(e) {
+  if (!drag) return;
+  const dx = e.clientX - drag.x0;
+  const dy = e.clientY - drag.y0;
+  if (drag.sel === null) {
+    if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+    const wantDown = Math.abs(dy) > Math.abs(dx);
+    let pick = drag.cands.find(
+      (i) => editorWords[i].dir === (wantDown ? "down" : "across")
+    );
+    if (pick === undefined) pick = drag.cands[0];
+    drag.sel = pick;
+    drag.orig = { row: editorWords[pick].row, col: editorWords[pick].col };
+  }
+  const w = editorWords[drag.sel];
+  const nr = drag.orig.row + Math.round(dy / drag.size);
+  const nc = drag.orig.col + Math.round(dx / drag.size);
+  if (w.row !== nr || w.col !== nc) {
+    w.row = nr;
+    w.col = nc;
+    renderPreview();
+  }
+}
+function onDragUp() {
+  window.removeEventListener("pointermove", onDragMove);
+  drag = null;
+  renderWordList();
+}
+
 function renderPreview() {
   const { layout, bad, msgs } = analyze(editorWords);
   const r = renderGrid(layout, { interactive: false, reveal: true });
-  // 충돌 칸 표시
   for (const k of bad) {
     const inp = r.inputs.get(k);
     if (inp) inp.parentElement.classList.add("cw-conflict");
   }
+  // 마우스 드래그로 단어 통째로 이동
+  r.gridEl.classList.add("cw-draggable");
+  const byKey = normCellMap(editorWords);
+  r.gridEl.addEventListener("pointerdown", (e) => {
+    const t = e.target;
+    if (!t.classList.contains("cw-input")) return;
+    const cands = (byKey.get(t.dataset.r + "," + t.dataset.c) || []).slice();
+    if (cands.length === 0) return;
+    e.preventDefault();
+    const rect = t.getBoundingClientRect();
+    drag = {
+      cands,
+      sel: cands.length === 1 ? cands[0] : null,
+      x0: e.clientX,
+      y0: e.clientY,
+      size: rect.width || 44,
+      orig:
+        cands.length === 1
+          ? { row: editorWords[cands[0]].row, col: editorWords[cands[0]].col }
+          : null,
+    };
+    window.addEventListener("pointermove", onDragMove);
+    window.addEventListener("pointerup", onDragUp, { once: true });
+  });
+
   $("preview").innerHTML = "";
   $("preview").appendChild(r.gridEl);
   $("conflictWarn").innerHTML = msgs.length

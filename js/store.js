@@ -4,8 +4,8 @@
 //  - 아직 설정 전이면 localStorage 로 동작(같은 브라우저에서만 동작하는 테스트용).
 // 플레이어/관리자 페이지는 이 모듈의 함수만 호출하면 됩니다.
 
-import { firebaseConfig } from "./firebase-config.js?v=9";
-import { DEFAULT_PUZZLE } from "../data/sample-puzzle.js?v=9";
+import { firebaseConfig } from "./firebase-config.js?v=11";
+import { DEFAULT_PUZZLE } from "../data/sample-puzzle.js?v=11";
 
 const SDK = "https://www.gstatic.com/firebasejs/10.12.0";
 
