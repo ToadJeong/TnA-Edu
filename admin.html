@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>관리자 · T&A 낱말퀴즈</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="org">CJ ENM · T&A사업부</div>
+      <div class="title">낱말퀴즈 관리자</div>
+      <div class="subtitle">문제 편집 · 선착순 정답 로그</div>
+    </header>
+
+    <main class="wrap">
+      <!-- 로그인 -->
+      <div class="card" id="loginCard">
+        <h2>관리자 로그인</h2>
+        <label for="pw">관리자 비밀번호</label>
+        <input id="pw" type="password" placeholder="비밀번호" />
+        <div style="margin-top: 14px">
+          <button id="loginBtn" class="btn-primary">로그인</button>
+        </div>
+        <div id="loginStatus" class="status"></div>
+      </div>
+
+      <div id="adminBody" class="hidden">
+        <div id="demoBanner" class="banner hidden">
+          ⚠️ 데모 모드 — Firebase 미설정 상태입니다. 지금 입력하는 내용과 로그는
+          이 브라우저에만 저장됩니다. 실제 운영 전
+          <code>js/firebase-config.js</code> 설정이 필요합니다.
+        </div>
+
+        <!-- 문제 편집 -->
+        <div class="card">
+          <h2>① 문제 편집</h2>
+          <p class="muted">
+            한 줄에 한 단어씩 <b>정답 , 힌트</b> 형식으로 입력하세요. 정답끼리
+            같은 글자가 있으면 자동으로 교차됩니다. 예) <code>교육, T&A사업부의 핵심 활동</code>
+          </p>
+          <label for="puzzleTitle">퍼즐 제목</label>
+          <input id="puzzleTitle" type="text" placeholder="T&A 가로세로 낱말퀴즈" />
+          <label for="wordsArea">문제 목록 (정답, 힌트)</label>
+          <textarea id="wordsArea" spellcheck="false"></textarea>
+          <div class="toolbar" style="margin-top: 12px">
+            <button id="previewBtn" class="btn-ghost">미리보기</button>
+            <button id="saveBtn" class="btn-primary">저장하기</button>
+            <span id="saveStatus" class="status"></span>
+          </div>
+          <div class="cw-scroll" style="margin-top: 14px">
+            <div id="preview"></div>
+          </div>
+        </div>
+
+        <!-- 정답 로그 -->
+        <div class="card">
+          <h2>② 선착순 정답 로그</h2>
+          <div class="toolbar">
+            <button id="refreshBtn" class="btn-ghost">새로고침</button>
+            <button id="csvBtn" class="btn-ghost">CSV 내려받기</button>
+            <span id="logStatus" class="muted"></span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>순위</th>
+                <th>이름</th>
+                <th>소속/부서</th>
+                <th>제출 시각</th>
+                <th>소요 시간</th>
+              </tr>
+            </thead>
+            <tbody id="logBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="js/admin.js"></script>
+  </body>
+</html>

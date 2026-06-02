@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CJ ENM · T&A사업부 가로세로 낱말퀴즈</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="org" id="org">CJ ENM · T&A사업부</div>
+      <div class="title" id="title">가로세로 낱말퀴즈</div>
+      <div class="subtitle" id="subtitle">선착순 정답자 이벤트</div>
+    </header>
+
+    <main class="wrap">
+      <div id="demoBanner" class="banner hidden">
+        ⚠️ 데모 모드 — Firebase가 아직 설정되지 않아 기록이 이 브라우저에만
+        저장됩니다. 실제 행사 전에 <code>js/firebase-config.js</code> 설정이
+        필요합니다. (README 참고)
+      </div>
+
+      <div class="card">
+        <h2>① 퍼즐을 풀어주세요</h2>
+        <div class="cw-scroll">
+          <div id="grid"></div>
+        </div>
+        <div class="no-print" style="margin-top: 14px">
+          <button id="checkBtn" class="btn-ghost">정답 확인</button>
+          <span id="checkStatus" class="status"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>힌트</h2>
+        <div class="clues">
+          <div>
+            <h3>가로 열쇠</h3>
+            <ol id="acrossClues"></ol>
+          </div>
+          <div>
+            <h3>세로 열쇠</h3>
+            <ol id="downClues"></ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="card no-print" id="submitCard">
+        <h2>② 정답을 모두 맞췄다면 제출하세요</h2>
+        <p class="muted">
+          이름과 소속만 입력하면 됩니다. 먼저 제출한 순서대로 기록됩니다.
+        </p>
+        <div class="row">
+          <div>
+            <label for="name">이름</label>
+            <input id="name" type="text" placeholder="홍길동" autocomplete="name" />
+          </div>
+          <div>
+            <label for="dept">소속 / 부서</label>
+            <input id="dept" type="text" placeholder="T&A사업부 ○○팀" />
+          </div>
+        </div>
+        <div style="margin-top: 16px">
+          <button id="submitBtn" class="btn-primary" disabled>
+            정답 제출하기
+          </button>
+        </div>
+        <div id="submitStatus" class="status"></div>
+      </div>
+
+      <div class="card no-print hidden" id="doneCard">
+        <div class="result-box">
+          <div class="rank" id="doneRank">제출 완료!</div>
+          <div class="msg" id="doneMsg"></div>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+rules_version = '2';
+// Firestore 보안 규칙 (사내 행사용 간이 설정)
+// Firebase 콘솔 > Firestore Database > 규칙(Rules) 탭에 붙여넣고 게시(Publish).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 퍼즐 문제: 누구나 읽기 가능(플레이어가 봐야 함).
+    // 쓰기는 운영자만 해야 하지만 인증을 붙이지 않은 간이 구성이라
+    // 행사 기간에만 임시로 열어둡니다. 행사 후에는 allow write: if false; 권장.
+    match /puzzle/{doc} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 정답 제출 로그.
+    //  - create: 누구나 가능(이름/소속/시각만 기록).
+    //  - read/update/delete: 막아둠(관리자 페이지는 read가 필요하므로
+    //    운영 중에는 아래 read를 true로 바꾸거나, 콘솔에서 직접 확인하세요).
+    match /submissions/{doc} {
+      allow create: if request.resource.data.name is string
+                    && request.resource.data.department is string;
+      allow read: if true;   // 관리자 로그 화면에서 조회. 민감정보 없음(이름/소속).
+      allow update, delete: if false;
+    }
+  }
+}

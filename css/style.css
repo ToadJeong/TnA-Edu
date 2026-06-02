@@ -1,0 +1,313 @@
+/* style.css — CJ ENM · T&A사업부 가로세로 낱말퀴즈 */
+:root {
+  --cell: 44px;
+  --brand: #e60073; /* CJ ENM 핑크 계열 포인트 */
+  --brand-dark: #b3005a;
+  --ink: #1a1a1a;
+  --muted: #6b7280;
+  --line: #d1d5db;
+  --bg: #f6f7f9;
+  --ok: #16a34a;
+  --warn: #d97706;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Malgun Gothic", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+}
+a {
+  color: var(--brand-dark);
+}
+
+.topbar {
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  padding: 14px 18px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar .org {
+  font-size: 13px;
+  color: var(--brand-dark);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.topbar .title {
+  font-size: 20px;
+  font-weight: 800;
+  margin-top: 2px;
+}
+.topbar .subtitle {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.wrap {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 18px 16px 80px;
+}
+
+.banner {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 18px;
+}
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+/* 퍼즐 그리드 */
+.cw-scroll {
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+.cw-grid {
+  display: grid;
+  gap: 0;
+  width: max-content;
+  margin: 0 auto;
+}
+.cw-cell {
+  width: var(--cell);
+  height: var(--cell);
+  border: 1px solid var(--line);
+  position: relative;
+  background: #fff;
+}
+.cw-blank {
+  background: transparent;
+  border: none;
+}
+.cw-num {
+  position: absolute;
+  top: 1px;
+  left: 2px;
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1;
+  pointer-events: none;
+}
+.cw-input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  background: transparent;
+  color: var(--ink);
+  padding: 0;
+  outline: none;
+}
+.cw-input:focus {
+  background: #fff0f7;
+}
+.cw-cell.correct .cw-input {
+  background: #e8f7ee;
+  color: var(--ok);
+}
+
+/* 힌트 목록 */
+.clues {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.clues h3 {
+  font-size: 14px;
+  margin: 0 0 8px;
+  color: var(--brand-dark);
+}
+.clues ol {
+  margin: 0;
+  padding-left: 4px;
+  list-style: none;
+}
+.clues li {
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 4px 0;
+  border-bottom: 1px dashed #eee;
+}
+.clues li b {
+  color: var(--brand-dark);
+  margin-right: 6px;
+}
+@media (max-width: 560px) {
+  .clues {
+    grid-template-columns: 1fr;
+  }
+  :root {
+    --cell: 38px;
+  }
+}
+
+/* 입력 폼 */
+label {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin: 10px 0 4px;
+}
+input[type="text"],
+input[type="password"],
+textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: inherit;
+}
+textarea {
+  min-height: 220px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.row {
+  display: flex;
+  gap: 12px;
+}
+.row > div {
+  flex: 1;
+}
+
+button,
+.btn {
+  appearance: none;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-primary {
+  background: var(--brand);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--brand-dark);
+}
+.btn-primary:disabled {
+  background: #f1a8cb;
+  cursor: not-allowed;
+}
+.btn-ghost {
+  background: #f3f4f6;
+  color: var(--ink);
+}
+
+.status {
+  margin-top: 12px;
+  font-size: 14px;
+  min-height: 20px;
+}
+.status.ok {
+  color: var(--ok);
+  font-weight: 700;
+}
+.status.bad {
+  color: var(--warn);
+}
+
+.result-box {
+  text-align: center;
+  padding: 24px 16px;
+}
+.result-box .rank {
+  font-size: 42px;
+  font-weight: 900;
+  color: var(--brand);
+}
+.result-box .msg {
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+/* 관리자: 로그 테이블 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+th,
+td {
+  text-align: left;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--line);
+}
+th {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+tr.first td {
+  background: #fff0f7;
+  font-weight: 700;
+}
+.rank-badge {
+  display: inline-block;
+  min-width: 22px;
+  text-align: center;
+  font-weight: 800;
+  color: var(--brand-dark);
+}
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+.hidden {
+  display: none !important;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* 인쇄 시: 입력칸은 비우고 그리드/힌트만 깔끔하게 */
+@media print {
+  .topbar,
+  .banner,
+  .no-print,
+  .clues h3 + ol li b {
+    /* keep */
+  }
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .cw-input {
+    color: transparent !important;
+    background: #fff !important;
+  }
+}
