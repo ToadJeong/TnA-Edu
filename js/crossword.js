@@ -401,6 +401,8 @@ export function renderGrid(layout, opts = {}) {
   }
 
   // ── 입력형: 단일 캐럿 ──────────────────────────────────────────────
+  // 단일 캐럿: 재부모화(DOM 이동)하면 포커스/IME 조합이 끊기므로,
+  // 그리드 안에 한 번만 두고 "위치만" 옮긴다(조합 연속성 유지).
   const caret = document.createElement("input");
   caret.className = "cw-caret";
   caret.setAttribute("inputmode", "text");
@@ -408,6 +410,16 @@ export function renderGrid(layout, opts = {}) {
   caret.autocapitalize = "off";
   caret.spellcheck = false;
   caret.maxLength = 4;
+  caret.style.display = "none";
+  wrap.style.position = "relative";
+  wrap.appendChild(caret);
+  function positionCaret(cell) {
+    caret.style.left = cell.offsetLeft + "px";
+    caret.style.top = cell.offsetTop + "px";
+    caret.style.width = cell.offsetWidth + "px";
+    caret.style.height = cell.offsetHeight + "px";
+    caret.style.display = "block";
+  }
 
   let activeKey = null;
   let activeDir = "across";
@@ -494,12 +506,11 @@ export function renderGrid(layout, opts = {}) {
   function moveTo(k, showClue) {
     if (!isEditable(k)) return;
     activeKey = k;
-    const cell = cellByKey.get(k);
-    cell.appendChild(caret);
+    positionCaret(cellByKey.get(k)); // 재부모화 없이 위치만 이동
     caret.value = getVal(k);
     highlight(k);
     if (showClue) fireActive(k);
-    caret.focus({ preventScroll: false });
+    caret.focus({ preventScroll: true });
     try {
       caret.setSelectionRange(0, caret.value.length);
     } catch (_) {}
@@ -614,11 +625,10 @@ export function renderGrid(layout, opts = {}) {
     }
   });
 
-  // 캐럿을 첫 편집 칸에 미리 장착(포커스/팝업 없이)
+  // 첫 편집 칸을 기본 활성으로(포커스/팝업 없이). 실제 위치는 첫 클릭 시 계산.
   for (const k of chByKey.keys()) {
     if (isEditable(k)) {
       activeKey = k;
-      cellByKey.get(k).appendChild(caret);
       break;
     }
   }

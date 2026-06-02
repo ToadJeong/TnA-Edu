@@ -734,15 +734,14 @@ button:active { transform: translateY(1px) scale(0.99); }
 .cw-cell.cw-revealed .cw-ch { color: #c97a00; font-weight: 800; }
 .cw-cell.correct .cw-ch { color: var(--ok); }
 .cw-caret {
-  position: absolute; inset: 0; width: 100%; height: 100%;
+  position: absolute; box-sizing: border-box;
   border: none; outline: none; text-align: center;
   font-size: 24px; font-weight: 700; background: #fff;
-  color: var(--ink); padding: 0; caret-color: var(--brand); z-index: 3;
-  font-family: inherit;
+  color: var(--ink); padding: 0; caret-color: var(--brand); z-index: 5;
+  font-family: inherit; box-shadow: inset 0 0 0 3px var(--brand2);
 }
-.cw-cell.active .cw-caret { box-shadow: inset 0 0 0 3px var(--brand2); }
 @media (max-width: 600px) {
-  .cw-ch, .cw-caret { font-size: 21px; }
+  .cw-ch { font-size: 21px; }
 }
 
 /* ───────── 칸 클릭 시 힌트(문제) 팝업 ───────── */
