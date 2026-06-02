@@ -4,12 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CJ ENM · T&A사업부 컴플라이언스 낱말퀴즈</title>
-    <link rel="stylesheet" href="css/style.css?v=14" />
+    <link rel="stylesheet" href="css/style.css?v=15" />
   </head>
   <body>
     <header class="topbar">
       <div class="topbar-inner">
-        <img class="logo" src="assets/logo.png?v=14" alt="CJ ENM" onerror="this.onerror=null;this.src='assets/logo.svg?v=14'" />
+        <img class="logo" src="assets/logo.png?v=15" alt="CJ ENM" onerror="this.onerror=null;this.src='assets/logo.svg?v=15'" />
         <div class="divider"></div>
         <div class="titles">
           <div class="org" id="org">T&A사업부</div>
@@ -72,7 +72,13 @@
             </div>
             <div class="timer" id="timer">00:00</div>
           </div>
-          <div class="cw-scroll">
+          <div class="zoom-bar no-print">
+            <span class="muted">확대/축소</span>
+            <button id="zoomOut" class="zoom-btn" aria-label="축소">➖</button>
+            <button id="zoomIn" class="zoom-btn" aria-label="확대">➕</button>
+            <button id="zoomReset" class="zoom-btn">기본</button>
+          </div>
+          <div class="cw-scroll" id="gridScroll">
             <div id="grid"></div>
           </div>
           <div class="no-print" style="margin-top: 16px">
@@ -133,21 +139,23 @@
           <button data-scope="today" data-sort="order">일일·제출순</button>
           <button data-scope="today" data-sort="time">일일·시간순</button>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>순위</th>
-              <th>이름</th>
-              <th>소속/부서</th>
-              <th id="rankMetricHead">제출 시각</th>
-            </tr>
-          </thead>
-          <tbody id="rankBody"></tbody>
-        </table>
+        <div class="tbl-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>순위</th>
+                <th>이름</th>
+                <th>소속/부서</th>
+                <th id="rankMetricHead">제출 시각</th>
+              </tr>
+            </thead>
+            <tbody id="rankBody"></tbody>
+          </table>
+        </div>
         <div id="rankStatus" class="muted" style="margin-top: 8px"></div>
       </div>
     </main>
 
-    <script type="module" src="js/app.js?v=14"></script>
+    <script type="module" src="js/app.js?v=15"></script>
   </body>
 </html>

@@ -1,7 +1,7 @@
 // app.js — 참가자 페이지 로직
-import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=14";
-import { loadPuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=14";
-import { EVENT } from "./firebase-config.js?v=14";
+import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=15";
+import { loadPuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=15";
+import { EVENT } from "./firebase-config.js?v=15";
 
 const $ = (id) => document.getElementById(id);
 
@@ -12,6 +12,7 @@ let startedAt = 0;
 let timerId = null;
 let submitted = false;
 let player = { name: "", department: "" };
+let zoom = null; // 그리드 칸 크기(px) 확대/축소 값
 
 function setHeader() {
   $("org").textContent = EVENT.org;
@@ -380,6 +381,27 @@ async function init() {
     }
   });
   $("submitBtn").addEventListener("click", onSubmit);
+
+  // 확대/축소 (휴대폰에서 칸을 키우거나 줄임)
+  const curCell = () => {
+    if (!render) return 44;
+    const v = getComputedStyle(render.gridEl).getPropertyValue("--cell");
+    return parseInt(v, 10) || 44;
+  };
+  $("zoomIn").addEventListener("click", () => {
+    if (!render) return;
+    zoom = Math.min(80, (zoom || curCell()) + 6);
+    render.gridEl.style.setProperty("--cell", zoom + "px");
+  });
+  $("zoomOut").addEventListener("click", () => {
+    if (!render) return;
+    zoom = Math.max(24, (zoom || curCell()) - 6);
+    render.gridEl.style.setProperty("--cell", zoom + "px");
+  });
+  $("zoomReset").addEventListener("click", () => {
+    zoom = null;
+    if (render) render.gridEl.style.removeProperty("--cell");
+  });
 
   // 랭킹
   $("rankBtn").addEventListener("click", openRanking);
