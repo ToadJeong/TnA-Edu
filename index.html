@@ -30,16 +30,29 @@
       <div class="card" id="introCard">
         <div class="intro">
           <h2 id="introTitle">컴플라이언스 가로세로 낱말퀴즈</h2>
-          <p>이름과 소속만 입력하면 참여할 수 있어요. 먼저 정답을 제출한 순서대로 기록됩니다.</p>
+          <p>이름과 소속을 입력하고 시작하세요. 먼저 정답을 제출한 순서대로 기록됩니다.</p>
           <div class="rules">
             • <b>시작하기</b>를 누르면 퍼즐이 공개되고 <b>풀이 시간 측정</b>이 시작됩니다.<br />
-            • 칸을 채우고 <b>정답 확인</b> → 이름·소속 입력 → <b>제출</b>!<br />
-            • 회색(보라) 칸은 미리 채워진 <b>힌트 글자</b>입니다.<br />
+            • 칸을 채우고 <b>정답 확인</b> → <b>제출</b>!<br />
+            • 파란색 칸은 미리 채워진 <b>힌트 글자</b>입니다.<br />
             • 순위는 <b>제출 순서</b>와 <b>풀이 시간</b>으로 가립니다.
           </div>
-          <div>
+          <div class="intro-form">
+            <div class="row">
+              <div>
+                <label for="name">이름</label>
+                <input id="name" type="text" placeholder="홍길동" autocomplete="name" />
+              </div>
+              <div>
+                <label for="dept">소속 / 부서</label>
+                <input id="dept" type="text" placeholder="○○협력사 / ○○팀" />
+              </div>
+            </div>
+          </div>
+          <div style="margin-top: 20px">
             <button id="startBtn" class="btn-primary btn-lg">시작하기 🚀</button>
           </div>
+          <div id="startStatus" class="status"></div>
         </div>
       </div>
 
@@ -80,18 +93,8 @@
 
         <div class="card no-print" id="submitCard">
           <h2>② 정답을 모두 맞췄다면 제출하세요</h2>
-          <p class="hd-desc">이름과 소속만 입력하면 됩니다.</p>
-          <div class="row">
-            <div>
-              <label for="name">이름</label>
-              <input id="name" type="text" placeholder="홍길동" autocomplete="name" />
-            </div>
-            <div>
-              <label for="dept">소속 / 부서</label>
-              <input id="dept" type="text" placeholder="○○협력사 / ○○팀" />
-            </div>
-          </div>
-          <div style="margin-top: 18px">
+          <p class="hd-desc" id="submitWho"></p>
+          <div>
             <button id="submitBtn" class="btn-primary" disabled>
               정답 제출하기
             </button>

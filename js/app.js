@@ -11,6 +11,7 @@ let render = null;
 let startedAt = 0;
 let timerId = null;
 let submitted = false;
+let player = { name: "", department: "" };
 
 function setHeader() {
   $("org").textContent = EVENT.org;
@@ -87,8 +88,19 @@ function stopTimer() {
 }
 
 function startGame() {
+  const name = $("name").value.trim();
+  const dept = $("dept").value.trim();
+  if (!name || !dept) {
+    const el = $("startStatus");
+    el.textContent = "이름과 소속을 먼저 입력해주세요.";
+    el.className = "status bad";
+    return;
+  }
+  player = { name, department: dept };
+
   $("introCard").classList.add("hidden");
   $("gameArea").classList.remove("hidden");
+  $("submitWho").textContent = `${name} · ${dept} 님으로 제출됩니다.`;
 
   // 시작 시점에 퍼즐 렌더링(시작 전에는 보이지 않도록)
   layout = buildLayout(puzzle.words || []);
@@ -102,14 +114,10 @@ function startGame() {
 
 async function onSubmit() {
   if (submitted) return;
-  const name = $("name").value.trim();
-  const dept = $("dept").value.trim();
+  const name = player.name;
+  const dept = player.department;
   if (!checkAll(true)) {
     setSubmitStatus("아직 정답이 아닌 칸이 있어요.", "bad");
-    return;
-  }
-  if (!name || !dept) {
-    setSubmitStatus("이름과 소속을 모두 입력해주세요.", "bad");
     return;
   }
   const durationMs = Date.now() - startedAt;

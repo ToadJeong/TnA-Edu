@@ -394,6 +394,11 @@ button,
 .intro .rules b {
   color: var(--brand2);
 }
+.intro-form {
+  max-width: 440px;
+  margin: 0 auto;
+  text-align: left;
+}
 
 /* 관리자: 로그 테이블 */
 table {
