@@ -1,27 +1,24 @@
 <!--
-  CJ ENM 로고 (재현본 / placeholder)
-  ⚠️ 이 환경에서는 cjenm.com 접속이 차단되어 공식 로고 파일을 받을 수 없었습니다.
-     CJ 브랜드 톤(블라썸 + 워드마크)에 맞춰 임시로 만든 SVG입니다.
-     공식 로고를 받으시면 이 파일(assets/logo.svg)을 그대로 덮어쓰거나,
-     PNG로 교체 후 index.html / admin.html 의 <img src="..."> 경로만 바꾸면 됩니다.
+  CJ ENM 로고 (공식 로고 기반 재현 SVG)
+  - 블라썸 3색 꽃잎(블루/오렌지/레드) + "CJ ENM" 워드마크
+  - 정식 가이드 자산이 있으면 이 파일을 그대로 덮어쓰면 됩니다.
 -->
-<svg width="190" height="44" viewBox="0 0 190 44" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CJ ENM">
-  <defs>
-    <linearGradient id="blossom" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#FF3D7F"/>
-      <stop offset="0.55" stop-color="#E2007A"/>
-      <stop offset="1" stop-color="#6A1B9A"/>
-    </linearGradient>
-  </defs>
-  <!-- 블라썸 마크 (4장의 둥근 꽃잎) -->
-  <g transform="translate(4,4)">
-    <circle cx="18" cy="8"  r="8" fill="url(#blossom)" opacity="0.92"/>
-    <circle cx="28" cy="18" r="8" fill="url(#blossom)" opacity="0.92"/>
-    <circle cx="18" cy="28" r="8" fill="url(#blossom)" opacity="0.92"/>
-    <circle cx="8"  cy="18" r="8" fill="url(#blossom)" opacity="0.92"/>
-    <circle cx="18" cy="18" r="5.5" fill="#ffffff"/>
+<svg width="210" height="64" viewBox="0 0 210 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CJ ENM">
+  <!-- CJ -->
+  <text x="2" y="45" font-family="Pretendard, 'Apple SD Gothic Neo', Arial, sans-serif"
+        font-size="40" font-weight="800" fill="#111111">CJ</text>
+
+  <!-- 블라썸 (꽃잎 3장, 끝이 가운데로 모임) -->
+  <g transform="translate(104,30)">
+    <path d="M0,2 C -10,-5 -10,-23 0,-30 C 10,-23 10,-5 0,2 Z"
+          fill="#1668D6" transform="rotate(6)"/>
+    <path d="M0,2 C -10,-5 -10,-23 0,-30 C 10,-23 10,-5 0,2 Z"
+          fill="#F7A300" transform="rotate(110)"/>
+    <path d="M0,2 C -10,-5 -10,-23 0,-30 C 10,-23 10,-5 0,2 Z"
+          fill="#E8330D" transform="rotate(232)"/>
   </g>
-  <!-- 워드마크 -->
-  <text x="52" y="29" font-family="Pretendard, 'Apple SD Gothic Neo', system-ui, sans-serif"
-        font-size="22" font-weight="800" letter-spacing="1" fill="#111111">CJ ENM</text>
+
+  <!-- ENM -->
+  <text x="138" y="45" font-family="Pretendard, 'Apple SD Gothic Neo', Arial, sans-serif"
+        font-size="40" font-weight="800" fill="#111111">ENM</text>
 </svg>

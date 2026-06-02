@@ -1,9 +1,10 @@
 /* style.css — CJ ENM · T&A사업부 컴플라이언스 가로세로 낱말퀴즈 */
 :root {
   --cell: 50px;
-  --brand: #e2007a; /* CJ 블라썸 매지나 */
-  --brand-dark: #b80063;
-  --brand2: #6a1b9a; /* 퍼플 */
+  --brand: #1668d6; /* CJ 블루 */
+  --brand-dark: #0f4fa8;
+  --brand2: #e8330d; /* CJ 레드 (포인트) */
+  --accent: #f7a300; /* CJ 오렌지 */
   --ink: #141414;
   --muted: #6b7280;
   --line: #c7ccd4;
@@ -127,8 +128,8 @@ a {
   font-weight: 800;
   font-size: 20px;
   color: var(--brand-dark);
-  background: #fff0f7;
-  border: 1px solid #f6c6df;
+  background: #eaf1fc;
+  border: 1px solid #bcd5f6;
   border-radius: 999px;
   padding: 6px 16px;
 }
@@ -183,15 +184,15 @@ a {
   caret-color: var(--brand);
 }
 .cw-input:focus {
-  background: #ffe3f1;
+  background: #dceafb;
   box-shadow: inset 0 0 0 2px var(--brand);
 }
 /* 교차 칸: 정답 글자를 미리 보여주는 힌트 */
 .cw-cell.cw-hint {
-  background: #f3ecfb;
+  background: #eaf1fc;
 }
 .cw-cell.cw-hint .cw-input {
-  color: var(--brand2);
+  color: var(--brand);
   font-weight: 800;
 }
 .cw-cell.correct {
@@ -234,8 +235,8 @@ a {
   min-width: 24px;
   height: 24px;
   border-radius: 6px;
-  background: #f3ecfb;
-  color: var(--brand2);
+  background: #eaf1fc;
+  color: var(--brand);
   font-weight: 800;
   font-size: 13px;
   display: inline-flex;
@@ -278,7 +279,7 @@ input[type="password"]:focus,
 textarea:focus {
   outline: none;
   border-color: var(--brand);
-  box-shadow: 0 0 0 3px rgba(226, 0, 122, 0.12);
+  box-shadow: 0 0 0 3px rgba(22, 104, 214, 0.14);
 }
 textarea {
   min-height: 240px;
@@ -313,7 +314,7 @@ button,
   background: var(--brand-dark);
 }
 .btn-primary:disabled {
-  background: #f0a9cb;
+  background: #a9c4ec;
   cursor: not-allowed;
 }
 .btn-ghost {
@@ -382,8 +383,8 @@ button,
 .intro .rules {
   display: inline-block;
   text-align: left;
-  background: #faf7fe;
-  border: 1px solid #ead9fb;
+  background: #eef4fd;
+  border: 1px solid #cfe0fa;
   border-radius: 12px;
   padding: 16px 20px;
   margin: 18px 0 24px;
@@ -412,7 +413,7 @@ th {
   font-weight: 700;
 }
 tr.first td {
-  background: #fff0f7;
+  background: #eaf1fc;
   font-weight: 700;
 }
 .rank-badge {
@@ -467,6 +468,6 @@ tr.first td {
     color: transparent !important;
   }
   .cw-cell.cw-hint .cw-input {
-    color: var(--brand2) !important;
+    color: var(--brand) !important;
   }
 }
