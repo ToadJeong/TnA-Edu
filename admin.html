@@ -38,28 +38,39 @@
           <code>js/firebase-config.js</code> 설정이 필요합니다.
         </div>
 
-        <!-- 문제 편집 -->
+        <!-- 문제 편집 (비주얼 에디터) -->
         <div class="card">
           <h2>① 문제 편집</h2>
           <p class="hd-desc">
-            입력 형식 두 가지. <b>미리보기</b>로 배치를 확인한 뒤 <b>저장</b>하세요.<br />
-            • <b>자동 배치</b> — 한 줄에 <code>정답, 힌트</code> (글자 겹치면 자동 교차)<br />
-            • <b>수동 배치(인쇄본과 동일)</b> — 한 줄에
-            <code>정답 | 힌트 | 방향 | 행 | 열 | 번호</code> (방향: 가로/세로).
-            힌트에 쉼표가 있어도 됩니다. 한 줄이라도 <code>|</code> 를 쓰면 전체가
-            수동 배치로 처리됩니다.
+            단어·힌트를 입력하고, <b>방향</b> 버튼과 <b>◀▲▼▶</b> 로 위치를 옮기면
+            오른쪽 미리보기에 바로 반영됩니다. 다 되면 <b>저장</b>을 누르세요.
+            서로 안 이어지는 단어가 붙으면 빨갛게 표시됩니다 — <b>🧩 자동 정렬</b>로 한 번에 정리할 수 있어요.
           </p>
           <label for="puzzleTitle">퍼즐 제목</label>
           <input id="puzzleTitle" type="text" placeholder="컴플라이언스 가로세로 낱말퀴즈" />
-          <label for="wordsArea">문제 목록</label>
-          <textarea id="wordsArea" spellcheck="false"></textarea>
-          <div class="toolbar" style="margin-top: 12px">
-            <button id="previewBtn" class="btn-ghost">미리보기</button>
-            <button id="saveBtn" class="btn-primary">저장하기</button>
-            <span id="saveStatus" class="status"></span>
-          </div>
-          <div class="cw-scroll" style="margin-top: 14px">
-            <div id="preview"></div>
+          <label class="toggle" style="margin-top: 14px">
+            <input type="checkbox" id="hintToggle" />
+            참가자 화면에 <b>💡 글자 힌트</b> 버튼 표시(랜덤 한 글자 공개)
+          </label>
+
+          <div class="editor-wrap" style="margin-top: 14px">
+            <div>
+              <div class="editor-head word-row" style="color: var(--muted); font-weight: 700">
+                <span>정답</span><span>힌트</span><span>방향</span><span>이동</span><span>위치</span><span></span>
+              </div>
+              <div id="wordList"></div>
+              <div class="toolbar" style="margin-top: 10px">
+                <button id="addWordBtn" class="btn-ghost">+ 단어 추가</button>
+                <button id="arrangeBtn" class="btn-ghost">🧩 자동 정렬</button>
+                <button id="saveBtn" class="btn-primary">저장하기</button>
+                <span id="saveStatus" class="status"></span>
+              </div>
+              <div id="conflictWarn"></div>
+            </div>
+            <div>
+              <div class="muted" style="margin-bottom: 6px">미리보기</div>
+              <div class="cw-scroll"><div id="preview"></div></div>
+            </div>
           </div>
         </div>
 
@@ -74,8 +85,14 @@
             </div>
             <button id="refreshBtn" class="btn-ghost">새로고침</button>
             <button id="csvBtn" class="btn-ghost">CSV 내려받기</button>
+            <button id="drawBtn" class="btn-primary">🎲 랜덤 뽑기</button>
             <button id="resetBtn" class="btn-danger">순위 초기화</button>
             <span id="logStatus" class="muted"></span>
+          </div>
+          <div id="drawBox" class="draw-box hidden">
+            <div class="muted">당첨자</div>
+            <div class="winner" id="winnerName">—</div>
+            <div class="muted" id="winnerDept"></div>
           </div>
           <table>
             <thead>

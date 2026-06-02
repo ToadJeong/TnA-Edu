@@ -1,5 +1,5 @@
 // app.js — 참가자 페이지 로직
-import { buildLayout, renderGrid } from "./crossword.js";
+import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js";
 import { loadPuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js";
 import { EVENT } from "./firebase-config.js";
 
@@ -59,6 +59,7 @@ function checkAll(markCells = false) {
   return allCorrect;
 }
 
+let celebrated = false;
 function onGridChange() {
   if (submitted) return;
   const all = checkAll(false);
@@ -66,6 +67,11 @@ function onGridChange() {
   if (all) {
     $("checkStatus").textContent = "🎉 모든 칸 정답! 아래에서 제출하세요.";
     $("checkStatus").className = "status ok";
+    if (!celebrated) {
+      celebrated = true;
+      checkAll(true);
+      confetti();
+    }
   }
 }
 
@@ -78,6 +84,7 @@ function fmtClock(ms) {
 }
 function startTimer() {
   startedAt = Date.now();
+  $("timer").classList.add("run");
   timerId = setInterval(() => {
     $("timer").textContent = fmtClock(Date.now() - startedAt);
   }, 500);
@@ -85,6 +92,25 @@ function startTimer() {
 function stopTimer() {
   if (timerId) clearInterval(timerId);
   timerId = null;
+  $("timer").classList.remove("run");
+}
+
+// 컨페티 효과
+function confetti() {
+  const colors = ["#1668d6", "#f7a300", "#e8330d", "#15803d", "#ffd23d"];
+  const box = document.createElement("div");
+  box.className = "confetti";
+  for (let i = 0; i < 90; i++) {
+    const piece = document.createElement("i");
+    piece.style.left = Math.random() * 100 + "vw";
+    piece.style.background = colors[i % colors.length];
+    piece.style.animationDuration = 2.4 + Math.random() * 1.8 + "s";
+    piece.style.animationDelay = Math.random() * 0.6 + "s";
+    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+    box.appendChild(piece);
+  }
+  document.body.appendChild(box);
+  setTimeout(() => box.remove(), 4800);
 }
 
 function startGame() {
@@ -108,6 +134,20 @@ function startGame() {
   $("grid").appendChild(render.gridEl);
   render.gridEl.addEventListener("cw-change", onGridChange);
   renderClues();
+
+  // 글자 힌트 버튼(관리자가 켰을 때만)
+  if (puzzle.hintEnabled !== false) {
+    const hintBtn = $("hintBtn");
+    hintBtn.classList.remove("hidden");
+    hintBtn.addEventListener("click", () => {
+      const ok = revealRandomCell(render);
+      if (!ok) {
+        hintBtn.disabled = true;
+        hintBtn.textContent = "더 공개할 칸이 없어요";
+      }
+    });
+  }
+
   startTimer();
   $("gameArea").scrollIntoView({ behavior: "smooth", block: "start" });
 }
@@ -178,6 +218,10 @@ async function init() {
       $("checkStatus").textContent = "🎉 모두 정답입니다! 제출해주세요.";
       $("checkStatus").className = "status ok";
       $("submitBtn").disabled = false;
+      if (!celebrated) {
+        celebrated = true;
+        confetti();
+      }
     } else {
       $("checkStatus").textContent = "초록색이 아닌 칸을 다시 확인해보세요.";
       $("checkStatus").className = "status bad";

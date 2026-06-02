@@ -50,6 +50,7 @@ export async function savePuzzle(puzzle) {
   const data = {
     title: puzzle.title || "가로세로 낱말퀴즈",
     words: puzzle.words || [],
+    hintEnabled: puzzle.hintEnabled !== false, // 기본값 ON
     updatedAt: Date.now(),
   };
   if (!isConfigured()) {
