@@ -1,17 +1,16 @@
-<svg width="206" height="56" viewBox="0 0 206 56" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CJ ENM">
+<svg width="430" height="150" viewBox="0 0 430 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CJ ENM">
   <!-- CJ -->
-  <text x="2" y="40" font-family="Pretendard, 'Apple SD Gothic Neo', Arial, sans-serif"
-        font-size="36" font-weight="800" fill="#111111">CJ</text>
+  <text x="4" y="104" font-family="Pretendard, 'Apple SD Gothic Neo', Arial, sans-serif"
+        font-size="92" font-weight="800" fill="#111111">CJ</text>
 
-  <!-- CJ 블라썸 (꽃잎 3장 + 흰 중심) -->
-  <g>
-    <circle cx="106" cy="15" r="10" fill="#1668D6"/>
-    <circle cx="116" cy="32" r="10" fill="#F7A300"/>
-    <circle cx="96"  cy="32" r="10" fill="#E8330D"/>
-    <circle cx="106" cy="26" r="5.5" fill="#ffffff"/>
+  <!-- CJ 블라썸: 물방울 꽃잎 3장 (파랑 좌상 / 주황 우 / 빨강 하) -->
+  <g transform="translate(182,72)">
+    <path d="M0,0 C -16,-13 -17,-39 0,-46 C 17,-39 16,-13 0,0 Z" fill="#1f6fd0" transform="rotate(-28)"/>
+    <path d="M0,0 C -16,-13 -17,-39 0,-46 C 17,-39 16,-13 0,0 Z" fill="#f8a200" transform="rotate(96)"/>
+    <path d="M0,0 C -16,-13 -17,-39 0,-46 C 17,-39 16,-13 0,0 Z" fill="#ea2a23" transform="rotate(216)"/>
   </g>
 
   <!-- ENM -->
-  <text x="130" y="40" font-family="Pretendard, 'Apple SD Gothic Neo', Arial, sans-serif"
-        font-size="36" font-weight="800" fill="#111111">ENM</text>
+  <text x="252" y="104" font-family="Pretendard, 'Apple SD Gothic Neo', Arial, sans-serif"
+        font-size="92" font-weight="800" fill="#111111">ENM</text>
 </svg>
