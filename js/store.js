@@ -36,13 +36,19 @@ export async function loadPuzzle() {
     const raw = localStorage.getItem("tna_puzzle");
     return raw ? JSON.parse(raw) : structuredClone(DEFAULT_PUZZLE);
   }
-  const database = await db();
-  const ref = _fs.doc(database, "puzzle", "current");
-  const snap = await _fs.getDoc(ref);
-  if (snap.exists()) return snap.data();
-  // 최초 1회: 기본 퍼즐로 시드
-  await savePuzzle(DEFAULT_PUZZLE);
-  return structuredClone(DEFAULT_PUZZLE);
+  try {
+    const database = await db();
+    const ref = _fs.doc(database, "puzzle", "current");
+    const snap = await _fs.getDoc(ref);
+    if (snap.exists()) return snap.data();
+    // 최초 1회: 기본 퍼즐로 시드
+    await savePuzzle(DEFAULT_PUZZLE);
+    return structuredClone(DEFAULT_PUZZLE);
+  } catch (e) {
+    // Firestore 미생성/규칙 미게시/네트워크 오류 시에도 퍼즐은 보이도록 기본값 사용
+    console.warn("Firestore 퍼즐 로드 실패 — 기본 퍼즐로 표시합니다.", e);
+    return structuredClone(DEFAULT_PUZZLE);
+  }
 }
 
 // ── 퍼즐 저장(관리자) ─────────────────────────────────────────────────

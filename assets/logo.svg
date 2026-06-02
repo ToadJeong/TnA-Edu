@@ -1,24 +1,17 @@
-<!--
-  CJ ENM 로고 (공식 로고 기반 재현 SVG)
-  - 블라썸 3색 꽃잎(블루/오렌지/레드) + "CJ ENM" 워드마크
-  - 정식 가이드 자산이 있으면 이 파일을 그대로 덮어쓰면 됩니다.
--->
-<svg width="210" height="64" viewBox="0 0 210 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CJ ENM">
+<svg width="206" height="56" viewBox="0 0 206 56" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CJ ENM">
   <!-- CJ -->
-  <text x="2" y="45" font-family="Pretendard, 'Apple SD Gothic Neo', Arial, sans-serif"
-        font-size="40" font-weight="800" fill="#111111">CJ</text>
+  <text x="2" y="40" font-family="Pretendard, 'Apple SD Gothic Neo', Arial, sans-serif"
+        font-size="36" font-weight="800" fill="#111111">CJ</text>
 
-  <!-- 블라썸 (꽃잎 3장, 끝이 가운데로 모임) -->
-  <g transform="translate(104,30)">
-    <path d="M0,2 C -10,-5 -10,-23 0,-30 C 10,-23 10,-5 0,2 Z"
-          fill="#1668D6" transform="rotate(6)"/>
-    <path d="M0,2 C -10,-5 -10,-23 0,-30 C 10,-23 10,-5 0,2 Z"
-          fill="#F7A300" transform="rotate(110)"/>
-    <path d="M0,2 C -10,-5 -10,-23 0,-30 C 10,-23 10,-5 0,2 Z"
-          fill="#E8330D" transform="rotate(232)"/>
+  <!-- CJ 블라썸 (꽃잎 3장 + 흰 중심) -->
+  <g>
+    <circle cx="106" cy="15" r="10" fill="#1668D6"/>
+    <circle cx="116" cy="32" r="10" fill="#F7A300"/>
+    <circle cx="96"  cy="32" r="10" fill="#E8330D"/>
+    <circle cx="106" cy="26" r="5.5" fill="#ffffff"/>
   </g>
 
   <!-- ENM -->
-  <text x="138" y="45" font-family="Pretendard, 'Apple SD Gothic Neo', Arial, sans-serif"
-        font-size="40" font-weight="800" fill="#111111">ENM</text>
+  <text x="130" y="40" font-family="Pretendard, 'Apple SD Gothic Neo', Arial, sans-serif"
+        font-size="36" font-weight="800" fill="#111111">ENM</text>
 </svg>
