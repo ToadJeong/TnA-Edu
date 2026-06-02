@@ -75,8 +75,8 @@ export function buildLayout(words) {
   if (items.length === 0) return { placed: [], rows: 0, cols: 0 };
   doPlace(items[0], 0, 0, "across");
 
-  for (let idx = 1; idx < items.length; idx++) {
-    const item = items[idx];
+  // 한 단어가 이미 놓인 단어들과 교차할 수 있는 최적 위치 탐색
+  function bestPlacement(item) {
     let best = null;
     for (const p of placed) {
       for (const cell of p.cells) {
@@ -94,12 +94,30 @@ export function buildLayout(words) {
         }
       }
     }
-    if (best) {
-      doPlace(item, best.row, best.col, best.dir);
+    return best;
+  }
+
+  // 다중 패스: 매 단계 "교차 가능한 단어 중 교차가 가장 많은 것"을 먼저 배치.
+  // 어떤 단어도 교차할 수 없으면, 남은 단어 하나를 아래쪽에 새 묶음으로 시드.
+  const unplaced = items.slice(1);
+  while (unplaced.length) {
+    let bestGlobal = null;
+    let bestWi = -1;
+    for (let wi = 0; wi < unplaced.length; wi++) {
+      const cand = bestPlacement(unplaced[wi]);
+      if (cand && (!bestGlobal || cand.score > bestGlobal.score)) {
+        bestGlobal = cand;
+        bestWi = wi;
+      }
+    }
+    if (bestGlobal) {
+      const item = unplaced.splice(bestWi, 1)[0];
+      doPlace(item, bestGlobal.row, bestGlobal.col, bestGlobal.dir);
     } else {
       let maxR = 0;
       for (const k of occupied.keys())
         maxR = Math.max(maxR, parseInt(k.split(",")[0], 10));
+      const item = unplaced.shift();
       doPlace(item, maxR + 2, 0, "across");
     }
   }

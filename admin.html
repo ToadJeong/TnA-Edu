@@ -4,12 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>관리자 · 컴플라이언스 낱말퀴즈</title>
-    <link rel="stylesheet" href="css/style.css?v=11" />
+    <link rel="stylesheet" href="css/style.css?v=12" />
   </head>
   <body>
     <header class="topbar">
       <div class="topbar-inner">
-        <img class="logo" src="assets/logo.png?v=11" alt="CJ ENM" onerror="this.onerror=null;this.src='assets/logo.svg?v=11'" />
+        <img class="logo" src="assets/logo.png?v=12" alt="CJ ENM" onerror="this.onerror=null;this.src='assets/logo.svg?v=12'" />
         <div class="divider"></div>
         <div class="titles">
           <div class="org">T&A사업부</div>
@@ -55,21 +55,21 @@
 
           <div class="editor-wrap" style="margin-top: 14px">
             <div>
-              <div class="editor-head word-row" style="color: var(--muted); font-weight: 700">
-                <span>정답</span><span>힌트</span><span>방향</span><span>이동</span><span>위치</span><span></span>
+              <div class="muted" style="margin-bottom: 6px">
+                미리보기 — 글자를 <b>마우스로 끌어</b> 단어를 옮길 수 있어요
               </div>
-              <div id="wordList"></div>
-              <div class="toolbar" style="margin-top: 10px">
+              <div class="cw-scroll"><div id="preview"></div></div>
+              <div id="conflictWarn"></div>
+              <div class="toolbar" style="margin-top: 12px">
                 <button id="addWordBtn" class="btn-ghost">+ 단어 추가</button>
-                <button id="arrangeBtn" class="btn-ghost">🧩 자동 정렬</button>
+                <button id="arrangeBtn" class="btn-ghost">🧩 자동 정렬(십자말풀이 자동 생성)</button>
                 <button id="saveBtn" class="btn-primary">저장하기</button>
                 <span id="saveStatus" class="status"></span>
               </div>
-              <div id="conflictWarn"></div>
             </div>
             <div>
-              <div class="muted" style="margin-bottom: 6px">미리보기</div>
-              <div class="cw-scroll"><div id="preview"></div></div>
+              <div class="muted" style="margin-bottom: 6px">단어 · 힌트</div>
+              <div id="wordList"></div>
             </div>
           </div>
         </div>
@@ -110,6 +110,6 @@
       </div>
     </main>
 
-    <script type="module" src="js/admin.js?v=11"></script>
+    <script type="module" src="js/admin.js?v=12"></script>
   </body>
 </html>

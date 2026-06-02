@@ -4,15 +4,15 @@ import {
   renderGrid,
   packComponents,
   splitSyllables,
-} from "./crossword.js?v=11";
+} from "./crossword.js?v=12";
 import {
   loadPuzzle,
   savePuzzle,
   listSubmissions,
   clearSubmissions,
   isConfigured,
-} from "./store.js?v=11";
-import { ADMIN_PASSWORD } from "./firebase-config.js?v=11";
+} from "./store.js?v=12";
+import { ADMIN_PASSWORD } from "./firebase-config.js?v=12";
 
 const $ = (id) => document.getElementById(id);
 
@@ -172,29 +172,25 @@ function renderPreview() {
     : "";
 }
 
-// 단어 목록 행 렌더
+// 단어 목록 행 렌더 (카드형 — 힌트는 전체 너비 여러 줄로 잘리지 않게)
 function renderWordList() {
   const list = $("wordList");
   list.innerHTML = "";
   editorWords.forEach((w, idx) => {
-    const row = document.createElement("div");
-    row.className = "word-row";
+    const card = document.createElement("div");
+    card.className = "word-card";
+
+    const top = document.createElement("div");
+    top.className = "wc-top";
 
     const ans = document.createElement("input");
     ans.type = "text";
+    ans.className = "ans";
     ans.value = w.answer;
     ans.placeholder = "정답";
     ans.addEventListener("input", () => {
       w.answer = ans.value;
       renderPreview();
-    });
-
-    const clue = document.createElement("input");
-    clue.type = "text";
-    clue.value = w.clue;
-    clue.placeholder = "힌트(설명)";
-    clue.addEventListener("input", () => {
-      w.clue = clue.value;
     });
 
     const dir = document.createElement("button");
@@ -239,8 +235,21 @@ function renderWordList() {
       renderPreview();
     });
 
-    row.append(ans, clue, dir, nudge, pos, rm);
-    list.appendChild(row);
+    top.append(ans, dir, nudge, pos, rm);
+
+    const clueWrap = document.createElement("div");
+    clueWrap.className = "wc-clue";
+    const clue = document.createElement("textarea");
+    clue.rows = 2;
+    clue.value = w.clue;
+    clue.placeholder = "힌트(설명) — 길게 적어도 잘리지 않습니다";
+    clue.addEventListener("input", () => {
+      w.clue = clue.value;
+    });
+    clueWrap.append(clue);
+
+    card.append(top, clueWrap);
+    list.appendChild(card);
   });
 }
 
@@ -250,13 +259,20 @@ function addWord() {
   renderPreview();
 }
 
+// 자동 정렬: 좌표를 무시하고 단어들을 글자 교차 기준으로 새로 맞물리게(십자말풀이) 재배치
 function arrange() {
-  editorWords = packComponents(editorWords, { maxWidth: 13 }).map((w) => ({
-    answer: w.answer,
-    clue: w.clue,
-    dir: w.dir,
-    row: w.row,
-    col: w.col,
+  const auto = buildLayout(
+    editorWords
+      .filter((w) => w.answer && w.answer.trim())
+      .map((w) => ({ answer: w.answer.trim(), clue: w.clue }))
+  );
+  if (auto.placed.length === 0) return;
+  editorWords = auto.placed.map((p) => ({
+    answer: p.answer,
+    clue: p.clue,
+    dir: p.dir,
+    row: p.row,
+    col: p.col,
   }));
   renderWordList();
   renderPreview();
