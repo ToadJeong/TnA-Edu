@@ -4,15 +4,15 @@ import {
   renderGrid,
   packComponents,
   splitSyllables,
-} from "./crossword.js?v=13";
+} from "./crossword.js?v=14";
 import {
   loadPuzzle,
   savePuzzle,
   listSubmissions,
   clearSubmissions,
   isConfigured,
-} from "./store.js?v=13";
-import { ADMIN_PASSWORD } from "./firebase-config.js?v=13";
+} from "./store.js?v=14";
+import { ADMIN_PASSWORD } from "./firebase-config.js?v=14";
 
 const $ = (id) => document.getElementById(id);
 
@@ -263,28 +263,46 @@ function addWord() {
   renderPreview();
 }
 
-// 자동 정렬: 단어들을 글자 교차 기준으로 새 십자말풀이로 재배치.
-// 누를 때마다 다른 배치를 만들고(랜덤), 가로세로비가 과하지 않은(균형잡힌) 결과를 고른다.
+// 자동 정렬: 단어를 글자 교차로 맞물리게(십자말풀이) 새로 만들고,
+// 클러스터를 여러 폭으로 묶어 가로:세로 비율이 설정값을 넘지 않도록 균형 배치.
+// 누를 때마다 랜덤이라 매번 다른 배치가 나온다.
 function arrange() {
   const base = editorWords
     .filter((w) => w.answer && w.answer.trim())
     .map((w) => ({ answer: w.answer.trim(), clue: w.clue }));
   if (base.length === 0) return;
-  let best = null;
-  for (let t = 0; t < 24; t++) {
-    const L = buildLayout(base, { random: true });
-    const lo = Math.max(1, Math.min(L.rows, L.cols));
-    const ratio = Math.max(L.rows, L.cols) / lo; // 1에 가까울수록 정사각형
-    const score = ratio + (L.rows * L.cols) / 500; // 비율 + 약한 면적 패널티
-    if (!best || score < best.score) best = { score, placed: L.placed };
+  const maxRatio = Math.max(1, parseFloat($("maxRatio").value) || 1.6);
+
+  const toWords = (placedOrWords) =>
+    placedOrWords.map((p) => ({
+      answer: p.answer,
+      clue: p.clue,
+      dir: p.dir,
+      row: p.row,
+      col: p.col,
+    }));
+
+  let best = null; // 전체 중 최소 점수(폴백)
+  let within = null; // maxRatio 이내 중 최소 점수
+  for (let t = 0; t < 16; t++) {
+    const auto = buildLayout(base, { random: true });
+    const autoWords = toWords(auto.placed);
+    const totalCells = auto.placed.reduce((s, p) => s + p.cells.length, 0);
+    const widths = new Set();
+    for (let f = 0.8; f <= 2.4; f += 0.2)
+      widths.add(Math.max(4, Math.round(Math.sqrt(totalCells) * f)));
+    for (const W of widths) {
+      const packed = packComponents(autoWords, { maxWidth: W });
+      const L = buildLayout(packed);
+      const lo = Math.max(1, Math.min(L.rows, L.cols));
+      const ratio = Math.max(L.rows, L.cols) / lo;
+      const score = Math.abs(ratio - 1) + (L.rows * L.cols) / 900;
+      const cand = { score, ratio, words: toWords(packed) };
+      if (!best || score < best.score) best = cand;
+      if (ratio <= maxRatio && (!within || score < within.score)) within = cand;
+    }
   }
-  editorWords = best.placed.map((p) => ({
-    answer: p.answer,
-    clue: p.clue,
-    dir: p.dir,
-    row: p.row,
-    col: p.col,
-  }));
+  editorWords = (within || best).words;
   renderWordList();
   renderPreview();
 }

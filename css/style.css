@@ -722,3 +722,42 @@ button:active { transform: translateY(1px) scale(0.99); }
 .rank-head { display: flex; align-items: center; justify-content: space-between; }
 .seg-wrap { flex-wrap: wrap; }
 .seg.seg-wrap button { flex: 1 1 auto; min-width: 110px; }
+
+/* ───────── 입력형 그리드: 글자칸 + 단일 캐럿 ───────── */
+.cw-ch {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; height: 100%;
+  font-size: 24px; font-weight: 700; color: var(--ink);
+  user-select: none;
+}
+.cw-cell.cw-hint .cw-ch { color: var(--brand); font-weight: 800; }
+.cw-cell.cw-revealed .cw-ch { color: #c97a00; font-weight: 800; }
+.cw-cell.correct .cw-ch { color: var(--ok); }
+.cw-caret {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  border: none; outline: none; text-align: center;
+  font-size: 24px; font-weight: 700; background: #fff;
+  color: var(--ink); padding: 0; caret-color: var(--brand); z-index: 3;
+  font-family: inherit;
+}
+.cw-cell.active .cw-caret { box-shadow: inset 0 0 0 3px var(--brand2); }
+@media (max-width: 600px) {
+  .cw-ch, .cw-caret { font-size: 21px; }
+}
+
+/* ───────── 칸 클릭 시 힌트(문제) 팝업 ───────── */
+.clue-pop {
+  position: fixed; z-index: 9998; max-width: 300px;
+  background: #14181f; color: #fff; padding: 10px 12px;
+  border-radius: 12px; font-size: 13px; line-height: 1.5;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+  animation: popin 0.16s ease;
+}
+.clue-pop.hidden { display: none; }
+.clue-pop .cp-line { margin: 3px 0; }
+.clue-pop .cp-a, .clue-pop .cp-d {
+  display: inline-block; border-radius: 5px; padding: 1px 6px;
+  font-weight: 800; margin-right: 5px; font-size: 12px;
+}
+.clue-pop .cp-a { background: var(--brand); color: #fff; }
+.clue-pop .cp-d { background: var(--accent); color: #3d2600; }

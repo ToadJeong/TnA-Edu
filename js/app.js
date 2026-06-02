@@ -1,7 +1,7 @@
 // app.js — 참가자 페이지 로직
-import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=13";
-import { loadPuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=13";
-import { EVENT } from "./firebase-config.js?v=13";
+import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=14";
+import { loadPuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=14";
+import { EVENT } from "./firebase-config.js?v=14";
 
 const $ = (id) => document.getElementById(id);
 
@@ -51,16 +51,75 @@ function checkAll(markCells = false) {
     if (!correct) allCorrect = false;
     if (markCells && correct) {
       for (const cell of p.cells) {
-        const inp = render.inputs.get(cell.r + "," + cell.c);
-        if (inp) inp.parentElement.classList.add("correct");
+        const el = render.cellByKey.get(cell.r + "," + cell.c);
+        if (el) el.classList.add("correct");
       }
     }
   }
   return allCorrect;
 }
 
+// ── 칸 클릭 시 해당 문제(힌트) 팝업 ───────────────────────────────────
+let cluePop = null;
+function ensureCluePop() {
+  if (cluePop) return cluePop;
+  cluePop = document.createElement("div");
+  cluePop.className = "clue-pop hidden";
+  document.body.appendChild(cluePop);
+  // 스크롤·바깥 터치·ESC 시 자동으로 닫힘
+  window.addEventListener("scroll", hideCluePop, true);
+  document.addEventListener(
+    "pointerdown",
+    (e) => {
+      if (!cluePop || cluePop.classList.contains("hidden")) return;
+      if (cluePop.contains(e.target) || e.target.closest(".cw-cell")) return;
+      hideCluePop();
+    },
+    true
+  );
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") hideCluePop();
+  });
+  return cluePop;
+}
+function hideCluePop() {
+  if (cluePop) cluePop.classList.add("hidden");
+}
+function showCluePopup(detail) {
+  const lines = [];
+  if (detail.across)
+    lines.push(
+      `<span class="cp-a">가로 ${detail.across.number}</span> ${escapeHtml(
+        detail.across.clue || ""
+      )}`
+    );
+  if (detail.down)
+    lines.push(
+      `<span class="cp-d">세로 ${detail.down.number}</span> ${escapeHtml(
+        detail.down.clue || ""
+      )}`
+    );
+  if (lines.length === 0) return hideCluePop();
+  const pop = ensureCluePop();
+  pop.innerHTML = lines.map((l) => `<div class="cp-line">${l}</div>`).join("");
+  pop.classList.remove("hidden");
+  const rect = detail.cellEl.getBoundingClientRect();
+  pop.style.position = "fixed";
+  // 가로 위치(화면 안으로 보정)
+  const w = pop.offsetWidth;
+  let left = rect.left + rect.width / 2 - w / 2;
+  left = Math.max(8, Math.min(window.innerWidth - w - 8, left));
+  pop.style.left = left + "px";
+  // 세로: 칸 위에, 공간 없으면 아래
+  const h = pop.offsetHeight;
+  let top = rect.top - h - 8;
+  if (top < 8) top = rect.bottom + 8;
+  pop.style.top = top + "px";
+}
+
 let celebrated = false;
 function onGridChange() {
+  hideCluePop();
   if (submitted) return;
   const all = checkAll(false);
   $("submitBtn").disabled = !all;
@@ -147,7 +206,11 @@ function startGame() {
 
   // 시작 시점에 퍼즐 렌더링(시작 전에는 보이지 않도록)
   layout = buildLayout(puzzle.words || []);
-  render = renderGrid(layout, { interactive: true, hintIntersections: true });
+  render = renderGrid(layout, {
+    interactive: true,
+    hintIntersections: true,
+    onActive: showCluePopup,
+  });
   $("grid").appendChild(render.gridEl);
   render.gridEl.addEventListener("cw-change", onGridChange);
   renderClues();
@@ -280,7 +343,11 @@ function renderRanking() {
         )
         .join("")
     : '<tr><td colspan="4" class="muted">아직 기록이 없어요.</td></tr>';
-  $("rankStatus").textContent = `${list.length}명`;
+  const n = new Date();
+  const p = (x) => String(x).padStart(2, "0");
+  const today = `${n.getFullYear()}-${p(n.getMonth() + 1)}-${p(n.getDate())}`;
+  $("rankStatus").textContent =
+    (rankScope === "today" ? `📅 오늘 ${today} · ` : "전체 · ") + `${list.length}명`;
 }
 function closeRanking() {
   $("rankCard").classList.add("hidden");
