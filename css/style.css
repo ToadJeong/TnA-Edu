@@ -574,15 +574,13 @@ button:active { transform: translateY(1px) scale(0.99); }
   to { transform: translateY(112vh) rotate(720deg); }
 }
 
-/* 관리자: 에디터 그리드 */
+/* 관리자: 에디터 (세로 배치 — 미리보기가 입력 칸을 찌그러뜨리지 않도록) */
 .editor-wrap { display: grid; grid-template-columns: 1fr; gap: 16px; }
-@media (min-width: 760px) {
-  .editor-wrap { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
-}
+.editor-wrap .cw-scroll { max-width: 100%; }
 .word-row {
   display: grid;
-  grid-template-columns: 1.1fr 2.4fr auto auto auto auto;
-  gap: 6px;
+  grid-template-columns: 130px minmax(0, 1fr) auto auto auto auto;
+  gap: 8px;
   align-items: center;
   margin-bottom: 6px;
 }

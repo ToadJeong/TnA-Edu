@@ -1,7 +1,7 @@
 // app.js — 참가자 페이지 로직
-import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=8";
-import { loadPuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=8";
-import { EVENT } from "./firebase-config.js?v=8";
+import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=9";
+import { loadPuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=9";
+import { EVENT } from "./firebase-config.js?v=9";
 
 const $ = (id) => document.getElementById(id);
 
