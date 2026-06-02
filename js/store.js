@@ -5,8 +5,8 @@
 //   config/active     : { activeId }
 //   submissions/{id}  : { name, department, durationMs, puzzleId, createdAt }
 
-import { firebaseConfig } from "./firebase-config.js?v=18";
-import { DEFAULT_PUZZLE } from "../data/sample-puzzle.js?v=18";
+import { firebaseConfig } from "./firebase-config.js?v=19";
+import { DEFAULT_PUZZLE } from "../data/sample-puzzle.js?v=19";
 
 const SDK = "https://www.gstatic.com/firebasejs/10.12.0";
 
@@ -33,6 +33,7 @@ const norm = (p) => ({
   title: (p && p.title) || "제목 없는 퍼즐",
   words: (p && p.words) || [],
   hintEnabled: !p || p.hintEnabled !== false,
+  hintLimit: p && Number.isFinite(p.hintLimit) ? Math.max(0, p.hintLimit) : 3,
 });
 
 // ── 로컬 폴백 헬퍼 ─────────────────────────────────────────────────────

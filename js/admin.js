@@ -4,7 +4,7 @@ import {
   renderGrid,
   packComponents,
   splitSyllables,
-} from "./crossword.js?v=18";
+} from "./crossword.js?v=19";
 import {
   listPuzzles,
   loadPuzzle,
@@ -16,8 +16,8 @@ import {
   listSubmissions,
   clearSubmissions,
   isConfigured,
-} from "./store.js?v=18";
-import { ADMIN_PASSWORD } from "./firebase-config.js?v=18";
+} from "./store.js?v=19";
+import { ADMIN_PASSWORD } from "./firebase-config.js?v=19";
 
 const $ = (id) => document.getElementById(id);
 
@@ -325,6 +325,7 @@ async function doSave() {
     await updatePuzzle(currentPuzzleId, {
       title: $("puzzleTitle").value.trim() || "제목 없는 퍼즐",
       hintEnabled,
+      hintLimit: Math.max(0, parseInt($("hintLimit").value, 10) || 0),
       words,
     });
     setStatus("saveStatus", "저장되었습니다.", "ok");
@@ -504,6 +505,7 @@ async function selectPuzzle(id) {
   $("puzzleTitle").value = puzzle.title || "";
   hintEnabled = puzzle.hintEnabled !== false;
   $("hintToggle").checked = hintEnabled;
+  $("hintLimit").value = Number.isFinite(puzzle.hintLimit) ? puzzle.hintLimit : 3;
   editorWords = (puzzle.words || []).map((w) => ({
     answer: w.answer || "",
     clue: w.clue || "",

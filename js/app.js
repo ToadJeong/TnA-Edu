@@ -1,7 +1,7 @@
 // app.js — 참가자 페이지 로직
-import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=18";
-import { loadActivePuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=18";
-import { EVENT } from "./firebase-config.js?v=18";
+import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=19";
+import { loadActivePuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=19";
+import { EVENT } from "./firebase-config.js?v=19";
 
 const $ = (id) => document.getElementById(id);
 
@@ -217,15 +217,27 @@ function startGame() {
   render.gridEl.addEventListener("cw-change", onGridChange);
   renderClues();
 
-  // 글자 힌트 버튼(관리자가 켰을 때만)
-  if (puzzle.hintEnabled !== false) {
-    const hintBtn = $("hintBtn");
+  // 글자 힌트 버튼 — 관리자가 켰을 때만, 정해진 횟수만큼만 사용 가능
+  const hintBtn = $("hintBtn");
+  let hintsLeft = puzzle.hintEnabled !== false ? (puzzle.hintLimit ?? 3) : 0;
+  const updateHintBtn = () => {
+    hintBtn.textContent = `💡 글자 힌트 (남은 ${hintsLeft}회)`;
+    hintBtn.disabled = hintsLeft <= 0;
+  };
+  if (hintsLeft > 0) {
     hintBtn.classList.remove("hidden");
+    updateHintBtn();
     hintBtn.addEventListener("click", () => {
+      if (hintsLeft <= 0) return;
       const ok = revealRandomCell(render);
-      if (!ok) {
-        hintBtn.disabled = true;
+      if (ok) {
+        hintsLeft--;
+        updateHintBtn();
+        if (hintsLeft <= 0) hintBtn.textContent = "💡 힌트 모두 사용";
+      } else {
+        hintsLeft = 0;
         hintBtn.textContent = "더 공개할 칸이 없어요";
+        hintBtn.disabled = true;
       }
     });
   }
