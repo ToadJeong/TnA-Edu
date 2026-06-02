@@ -5,12 +5,12 @@
 //  (Firebase 콘솔 > 프로젝트 설정 > 일반 > 내 앱 > SDK 설정 및 구성 > "구성")
 // ───────────────────────────────────────────────────────────────────────────
 export const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyAeRPtdzTs001DENNpG7Gj4K5xEzylzVK8",
+  authDomain: "tna-edu.firebaseapp.com",
+  projectId: "tna-edu",
+  storageBucket: "tna-edu.firebasestorage.app",
+  messagingSenderId: "688778693149",
+  appId: "1:688778693149:web:be492d8e3ad149d4f594f4",
 };
 
 // 관리자 페이지(admin.html) 접속 비밀번호.
