@@ -4,15 +4,15 @@ import {
   renderGrid,
   packComponents,
   splitSyllables,
-} from "./crossword.js?v=12";
+} from "./crossword.js?v=13";
 import {
   loadPuzzle,
   savePuzzle,
   listSubmissions,
   clearSubmissions,
   isConfigured,
-} from "./store.js?v=12";
-import { ADMIN_PASSWORD } from "./firebase-config.js?v=12";
+} from "./store.js?v=13";
+import { ADMIN_PASSWORD } from "./firebase-config.js?v=13";
 
 const $ = (id) => document.getElementById(id);
 
@@ -135,7 +135,11 @@ function onDragUp() {
 
 function renderPreview() {
   const { layout, bad, msgs } = analyze(editorWords);
-  const r = renderGrid(layout, { interactive: false, reveal: true });
+  const r = renderGrid(layout, {
+    interactive: false,
+    reveal: true,
+    dirTint: true,
+  });
   for (const k of bad) {
     const inp = r.inputs.get(k);
     if (inp) inp.parentElement.classList.add("cw-conflict");
@@ -259,15 +263,22 @@ function addWord() {
   renderPreview();
 }
 
-// 자동 정렬: 좌표를 무시하고 단어들을 글자 교차 기준으로 새로 맞물리게(십자말풀이) 재배치
+// 자동 정렬: 단어들을 글자 교차 기준으로 새 십자말풀이로 재배치.
+// 누를 때마다 다른 배치를 만들고(랜덤), 가로세로비가 과하지 않은(균형잡힌) 결과를 고른다.
 function arrange() {
-  const auto = buildLayout(
-    editorWords
-      .filter((w) => w.answer && w.answer.trim())
-      .map((w) => ({ answer: w.answer.trim(), clue: w.clue }))
-  );
-  if (auto.placed.length === 0) return;
-  editorWords = auto.placed.map((p) => ({
+  const base = editorWords
+    .filter((w) => w.answer && w.answer.trim())
+    .map((w) => ({ answer: w.answer.trim(), clue: w.clue }));
+  if (base.length === 0) return;
+  let best = null;
+  for (let t = 0; t < 24; t++) {
+    const L = buildLayout(base, { random: true });
+    const lo = Math.max(1, Math.min(L.rows, L.cols));
+    const ratio = Math.max(L.rows, L.cols) / lo; // 1에 가까울수록 정사각형
+    const score = ratio + (L.rows * L.cols) / 500; // 비율 + 약한 면적 패널티
+    if (!best || score < best.score) best = { score, placed: L.placed };
+  }
+  editorWords = best.placed.map((p) => ({
     answer: p.answer,
     clue: p.clue,
     dir: p.dir,

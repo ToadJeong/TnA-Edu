@@ -8,7 +8,8 @@ export function splitSyllables(word) {
 
 // words: [{ answer, clue, dir?, row?, col?, num? }]
 // 반환: { placed:[{answer, clue, row, col, dir, number, cells:[{r,c,ch}]}], rows, cols }
-export function buildLayout(words) {
+export function buildLayout(words, opts = {}) {
+  const rand = !!opts.random;
   const items = (words || [])
     .filter((w) => w && w.answer && w.answer.trim().length > 0)
     .map((w) => ({
@@ -31,6 +32,12 @@ export function buildLayout(words) {
     );
   if (isManual) return manualLayout(items);
 
+  // random 모드: 같은 길이 단어 순서를 섞어 매번 다른 배치가 나오게 함
+  if (rand)
+    for (let i = items.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [items[i], items[j]] = [items[j], items[i]];
+    }
   items.sort((a, b) => b.syl.length - a.syl.length);
 
   const occupied = new Map();
@@ -88,7 +95,13 @@ export function buildLayout(words) {
           const row = cell.r - dr * i;
           const col = cell.c - dc * i;
           const res = canPlace(item.syl, row, col, dir);
-          if (res && res.ok && (!best || res.intersections > best.score)) {
+          if (
+            res &&
+            res.ok &&
+            (!best ||
+              res.intersections > best.score ||
+              (rand && res.intersections === best.score && Math.random() < 0.5))
+          ) {
             best = { row, col, dir, score: res.intersections };
           }
         }
@@ -105,7 +118,12 @@ export function buildLayout(words) {
     let bestWi = -1;
     for (let wi = 0; wi < unplaced.length; wi++) {
       const cand = bestPlacement(unplaced[wi]);
-      if (cand && (!bestGlobal || cand.score > bestGlobal.score)) {
+      if (
+        cand &&
+        (!bestGlobal ||
+          cand.score > bestGlobal.score ||
+          (rand && cand.score === bestGlobal.score && Math.random() < 0.5))
+      ) {
         bestGlobal = cand;
         bestWi = wi;
       }
@@ -277,20 +295,31 @@ export function packComponents(words, opts = {}) {
 // ── 렌더링 ────────────────────────────────────────────────────────────
 // opts: { interactive, reveal, hintIntersections }
 export function renderGrid(layout, opts = {}) {
-  const { interactive = true, reveal = false, hintIntersections = false } = opts;
+  const {
+    interactive = true,
+    reveal = false,
+    hintIntersections = false,
+    dirTint = false,
+  } = opts;
   const wrap = document.createElement("div");
   wrap.className = "cw-grid";
   wrap.style.gridTemplateColumns = `repeat(${layout.cols}, var(--cell))`;
 
-  const cellMap = new Map(); // "r,c" -> {ch, number, count}
+  const cellMap = new Map(); // "r,c" -> {ch, number, count, startA, startD}
   const acrossOf = new Map(); // "r,c" -> placed(가로)
   const downOf = new Map(); // "r,c" -> placed(세로)
   for (const p of layout.placed) {
     p.cells.forEach((cell, i) => {
       const k = cell.r + "," + cell.c;
-      if (!cellMap.has(k)) cellMap.set(k, { ch: cell.ch, number: null, count: 0 });
-      cellMap.get(k).count++;
-      if (i === 0) cellMap.get(k).number = p.number;
+      if (!cellMap.has(k))
+        cellMap.set(k, { ch: cell.ch, number: null, count: 0, startA: false, startD: false });
+      const info = cellMap.get(k);
+      info.count++;
+      if (i === 0) {
+        info.number = p.number;
+        if (p.dir === "across") info.startA = true;
+        else info.startD = true;
+      }
       if (p.dir === "across") acrossOf.set(k, p);
       else downOf.set(k, p);
     });
@@ -308,9 +337,18 @@ export function renderGrid(layout, opts = {}) {
         wrap.appendChild(cellEl);
         continue;
       }
+      // 방향별 칸 색(관리자 미리보기 등): 가로 dir-a / 세로 dir-d / 둘 다 dir-ad
+      if (dirTint) {
+        const a = acrossOf.has(k),
+          d = downOf.has(k);
+        cellEl.classList.add(a && d ? "dir-ad" : d ? "dir-d" : "dir-a");
+      }
       if (info.number) {
         const numEl = document.createElement("span");
-        numEl.className = "cw-num";
+        // 가로 시작=파랑, 세로 시작=주황, 둘 다=양쪽 표시
+        numEl.className =
+          "cw-num " +
+          (info.startA && info.startD ? "num-both" : info.startD ? "num-d" : "num-a");
         numEl.textContent = info.number;
         cellEl.appendChild(numEl);
       }
@@ -400,6 +438,7 @@ export function renderGrid(layout, opts = {}) {
 
   if (interactive && !reveal) {
     let composing = false;
+    let skipNextInput = false;
     let lastFocusKey = null;
 
     function popCell(inp) {
@@ -456,12 +495,20 @@ export function renderGrid(layout, opts = {}) {
     wrap.addEventListener("compositionend", (e) => {
       if (!e.target.classList.contains("cw-input")) return;
       composing = false;
+      skipNextInput = true; // 직후 따라오는 input 이벤트의 이중 처리 방지
       finalize(e.target);
+      setTimeout(() => {
+        skipNextInput = false;
+      }, 0);
     });
     wrap.addEventListener("input", (e) => {
       const t = e.target;
       if (!t.classList.contains("cw-input")) return;
-      if (e.isComposing || composing) return;
+      if (e.isComposing || composing) return; // 조합 중에는 절대 이동하지 않음
+      if (skipNextInput) {
+        skipNextInput = false;
+        return;
+      }
       finalize(t);
     });
 

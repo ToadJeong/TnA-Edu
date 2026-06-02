@@ -1,7 +1,7 @@
 // app.js — 참가자 페이지 로직
-import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=12";
-import { loadPuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=12";
-import { EVENT } from "./firebase-config.js?v=12";
+import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=13";
+import { loadPuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=13";
+import { EVENT } from "./firebase-config.js?v=13";
 
 const $ = (id) => document.getElementById(id);
 
@@ -95,8 +95,25 @@ function stopTimer() {
   $("timer").classList.remove("run");
 }
 
-// 컨페티 효과
-function confetti() {
+// 컨페티 효과 — 라이브러리(canvas-confetti) 우선, 실패 시 CSS 폴백
+let _confettiLib = null;
+async function confetti() {
+  try {
+    if (_confettiLib === null) {
+      const mod = await import(
+        "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.module.mjs"
+      );
+      _confettiLib = mod.default;
+    }
+    const c = _confettiLib;
+    c({ particleCount: 140, spread: 75, origin: { y: 0.6 } });
+    setTimeout(() => c({ particleCount: 80, angle: 60, spread: 80, origin: { x: 0 } }), 200);
+    setTimeout(() => c({ particleCount: 80, angle: 120, spread: 80, origin: { x: 1 } }), 350);
+  } catch (_) {
+    domConfetti();
+  }
+}
+function domConfetti() {
   const colors = ["#1668d6", "#f7a300", "#e8330d", "#15803d", "#ffd23d"];
   const box = document.createElement("div");
   box.className = "confetti";
@@ -167,13 +184,7 @@ async function onSubmit() {
     await addSubmission({ name, department: dept, durationMs });
     submitted = true;
     stopTimer();
-    let rankText = "제출이 기록되었습니다!";
-    try {
-      const subs = await listSubmissions();
-      const idx = subs.findIndex((s) => s.name === name && s.department === dept);
-      if (idx >= 0) rankText = `${idx + 1}등으로 기록되었습니다!`;
-    } catch (_) {}
-    showDone(rankText, name, durationMs);
+    showDone(name, durationMs);
   } catch (err) {
     console.error(err);
     setSubmitStatus("제출 중 오류가 발생했어요. 잠시 후 다시 시도해주세요.", "bad");
@@ -187,15 +198,14 @@ function setSubmitStatus(msg, kind) {
   el.className = "status " + (kind || "");
 }
 
-function showDone(rankText, name, durationMs) {
-  $("submitCard").classList.add("hidden");
+function showDone(name, durationMs) {
+  $("gameArea").classList.add("hidden");
   $("doneCard").classList.remove("hidden");
-  $("doneRank").textContent = rankText;
-  $("doneMsg").textContent = `${name}님, 참여해주셔서 감사합니다. (풀이 시간 ${fmtClock(
-    durationMs
-  )}) 당첨 결과는 별도로 안내드립니다.`;
-  $("doneCard").scrollIntoView({ behavior: "smooth" });
-  confetti(); // 등수 표시와 함께 축하 효과
+  $("doneTime").textContent = fmtClock(durationMs);
+  $("doneRank").textContent = "제출이 완료되었습니다!";
+  $("doneMsg").textContent = `${name}님, 참여해주셔서 감사합니다. 당첨 결과는 별도로 안내드립니다.`;
+  $("doneCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  confetti();
 }
 
 function escapeHtml(s) {
@@ -203,6 +213,80 @@ function escapeHtml(s) {
     /[&<>"']/g,
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])
   );
+}
+function fmtDateTime(ms) {
+  if (!ms) return "—";
+  const d = new Date(ms);
+  const p = (n) => String(n).padStart(2, "0");
+  return `${p(d.getMonth() + 1)}/${p(d.getDate())} ${p(d.getHours())}:${p(
+    d.getMinutes()
+  )}:${p(d.getSeconds())}`;
+}
+
+// ── 랭킹 (전체/일일 × 제출순/시간순 = 4종) ──────────────────────────
+let rankAll = [];
+let rankScope = "all"; // all | today
+let rankSort = "order"; // order | time
+let prevView = "intro";
+function isToday(ms) {
+  if (!ms) return false;
+  const d = new Date(ms),
+    n = new Date();
+  return (
+    d.getFullYear() === n.getFullYear() &&
+    d.getMonth() === n.getMonth() &&
+    d.getDate() === n.getDate()
+  );
+}
+async function openRanking() {
+  prevView = submitted
+    ? "done"
+    : $("gameArea").classList.contains("hidden")
+    ? "intro"
+    : "game";
+  $("introCard").classList.add("hidden");
+  $("gameArea").classList.add("hidden");
+  $("doneCard").classList.add("hidden");
+  $("rankCard").classList.remove("hidden");
+  $("rankStatus").textContent = "불러오는 중…";
+  $("rankCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  try {
+    rankAll = await listSubmissions();
+    renderRanking();
+  } catch (e) {
+    console.error(e);
+    $("rankBody").innerHTML = "";
+    $("rankStatus").textContent = "랭킹을 불러오지 못했어요.";
+  }
+}
+function renderRanking() {
+  let list = rankAll.slice();
+  if (rankScope === "today") list = list.filter((s) => isToday(s.createdAtMs));
+  if (rankSort === "time")
+    list.sort((a, b) => (a.durationMs ?? Infinity) - (b.durationMs ?? Infinity));
+  else list.sort((a, b) => (a.createdAtMs ?? Infinity) - (b.createdAtMs ?? Infinity));
+  $("rankMetricHead").textContent = rankSort === "time" ? "풀이 시간" : "제출 시각";
+  const medal = ["🥇", "🥈", "🥉"];
+  $("rankBody").innerHTML = list.length
+    ? list
+        .map(
+          (s, i) => `
+      <tr class="${i === 0 ? "first" : ""}">
+        <td><span class="rank-badge">${i + 1}</span>${i < 3 ? " " + medal[i] : ""}</td>
+        <td>${escapeHtml(s.name)}</td>
+        <td>${escapeHtml(s.department)}</td>
+        <td>${rankSort === "time" ? fmtClock(s.durationMs || 0) : fmtDateTime(s.createdAtMs)}</td>
+      </tr>`
+        )
+        .join("")
+    : '<tr><td colspan="4" class="muted">아직 기록이 없어요.</td></tr>';
+  $("rankStatus").textContent = `${list.length}명`;
+}
+function closeRanking() {
+  $("rankCard").classList.add("hidden");
+  if (prevView === "done") $("doneCard").classList.remove("hidden");
+  else if (prevView === "game") $("gameArea").classList.remove("hidden");
+  else $("introCard").classList.remove("hidden");
 }
 
 async function init() {
@@ -229,6 +313,21 @@ async function init() {
     }
   });
   $("submitBtn").addEventListener("click", onSubmit);
+
+  // 랭킹
+  $("rankBtn").addEventListener("click", openRanking);
+  $("rankBtn2").addEventListener("click", openRanking);
+  $("rankClose").addEventListener("click", closeRanking);
+  $("rankTabs").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-scope]");
+    if (!b) return;
+    rankScope = b.dataset.scope;
+    rankSort = b.dataset.sort;
+    $("rankTabs")
+      .querySelectorAll("button")
+      .forEach((x) => x.classList.toggle("active", x === b));
+    renderRanking();
+  });
 }
 
 init().catch((e) => {

@@ -687,3 +687,38 @@ button:active { transform: translateY(1px) scale(0.99); }
   75% { transform: rotate(7deg); }
 }
 .btn-hint:hover { animation: wiggle 0.4s ease; }
+
+/* ───────── 방향별 번호 색 (가로=파랑 / 세로=주황 / 둘다=보라) ───────── */
+.cw-num.num-a { color: var(--brand); }
+.cw-num.num-d { color: #c97a00; }
+.cw-num.num-both { color: #7a3df0; }
+/* 방향별 칸 색(관리자 미리보기) */
+.cw-cell.dir-a { background: #eef5ff; }
+.cw-cell.dir-d { background: #fff6e9; }
+.cw-cell.dir-ad { background: #eafaef; }
+
+/* ───────── 상단 네비 (랭킹 / 관리자) ───────── */
+.topbar-nav { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.nav-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 8px 13px; border-radius: 9px;
+  background: #f1f2f4; border: 1px solid var(--line);
+  color: var(--ink); font-weight: 700; font-size: 13px;
+  text-decoration: none; cursor: pointer; white-space: nowrap;
+}
+.nav-btn:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+/* ───────── 완료 화면: 큰 풀이시간 ───────── */
+.done-emoji { font-size: 44px; animation: rankpop 0.5s ease; }
+.done-time-label { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.done-time {
+  font-size: 56px; font-weight: 900; color: var(--brand);
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+  animation: popin 0.5s cubic-bezier(0.2, 1.3, 0.4, 1);
+}
+#doneRank { font-size: 22px; font-weight: 800; color: var(--ink); margin-top: 10px; }
+
+/* ───────── 랭킹 ───────── */
+.rank-head { display: flex; align-items: center; justify-content: space-between; }
+.seg-wrap { flex-wrap: wrap; }
+.seg.seg-wrap button { flex: 1 1 auto; min-width: 110px; }

@@ -4,18 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CJ ENM · T&A사업부 컴플라이언스 낱말퀴즈</title>
-    <link rel="stylesheet" href="css/style.css?v=12" />
+    <link rel="stylesheet" href="css/style.css?v=13" />
   </head>
   <body>
     <header class="topbar">
       <div class="topbar-inner">
-        <img class="logo" src="assets/logo.png?v=12" alt="CJ ENM" onerror="this.onerror=null;this.src='assets/logo.svg?v=12'" />
+        <img class="logo" src="assets/logo.png?v=13" alt="CJ ENM" onerror="this.onerror=null;this.src='assets/logo.svg?v=13'" />
         <div class="divider"></div>
         <div class="titles">
           <div class="org" id="org">T&A사업부</div>
           <div class="title" id="title">컴플라이언스 가로세로 낱말퀴즈</div>
           <div class="subtitle" id="subtitle">2026년 협력사 교육 · 선착순 정답자 이벤트</div>
         </div>
+        <nav class="topbar-nav">
+          <button id="rankBtn" class="nav-btn">🏆 랭킹</button>
+          <a class="nav-btn" href="admin.html">⚙️ 관리자</a>
+        </nav>
       </div>
     </header>
 
@@ -106,12 +110,44 @@
 
       <div class="card no-print hidden" id="doneCard">
         <div class="result-box">
-          <div class="rank" id="doneRank">제출 완료!</div>
+          <div class="done-emoji">🎉</div>
+          <div class="done-time-label">나의 풀이 시간</div>
+          <div class="done-time" id="doneTime">00:00</div>
+          <div class="rank" id="doneRank">제출이 완료되었습니다!</div>
           <div class="msg" id="doneMsg"></div>
+          <div style="margin-top: 18px">
+            <button id="rankBtn2" class="btn-primary">🏆 랭킹 보기</button>
+          </div>
         </div>
+      </div>
+
+      <!-- 랭킹 -->
+      <div class="card hidden" id="rankCard">
+        <div class="rank-head">
+          <h2 style="margin: 0">🏆 랭킹</h2>
+          <button id="rankClose" class="btn-ghost">닫기</button>
+        </div>
+        <div class="seg seg-wrap" id="rankTabs" style="margin: 12px 0">
+          <button data-scope="all" data-sort="order" class="active">전체·제출순</button>
+          <button data-scope="all" data-sort="time">전체·시간순</button>
+          <button data-scope="today" data-sort="order">일일·제출순</button>
+          <button data-scope="today" data-sort="time">일일·시간순</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>순위</th>
+              <th>이름</th>
+              <th>소속/부서</th>
+              <th id="rankMetricHead">제출 시각</th>
+            </tr>
+          </thead>
+          <tbody id="rankBody"></tbody>
+        </table>
+        <div id="rankStatus" class="muted" style="margin-top: 8px"></div>
       </div>
     </main>
 
-    <script type="module" src="js/app.js?v=12"></script>
+    <script type="module" src="js/app.js?v=13"></script>
   </body>
 </html>
