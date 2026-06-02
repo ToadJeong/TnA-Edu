@@ -243,20 +243,24 @@ function manualLayout(items) {
 }
 
 // 레이아웃을 DOM 그리드로 렌더링
-// opts: { interactive: 입력 가능 여부, reveal: 정답 미리 채움(관리자 미리보기) }
-// 반환: { gridEl, getWordValue(placed), cellInputs }
+// opts:
+//   interactive       : 입력 가능 여부
+//   reveal            : 정답을 모두 미리 채움(관리자 미리보기)
+//   hintIntersections : 교차(겹치는) 칸의 정답 글자를 미리 채워 힌트로 제공
+// 반환: { gridEl, getWordValue(placed), inputs, cellMap }
 export function renderGrid(layout, opts = {}) {
-  const { interactive = true, reveal = false } = opts;
+  const { interactive = true, reveal = false, hintIntersections = false } = opts;
   const wrap = document.createElement("div");
   wrap.className = "cw-grid";
   wrap.style.gridTemplateColumns = `repeat(${layout.cols}, var(--cell))`;
 
-  // 각 칸의 정보(어떤 글자인지, 시작번호 등)를 모아둠
-  const cellMap = new Map(); // "r,c" -> { ch, number }
+  // 각 칸의 정보(글자, 시작번호, 몇 개 단어가 지나가는지)
+  const cellMap = new Map(); // "r,c" -> { ch, number, count }
   for (const p of layout.placed) {
     p.cells.forEach((cell, i) => {
       const k = cell.r + "," + cell.c;
-      if (!cellMap.has(k)) cellMap.set(k, { ch: cell.ch, number: null });
+      if (!cellMap.has(k)) cellMap.set(k, { ch: cell.ch, number: null, count: 0 });
+      cellMap.get(k).count++;
       if (i === 0) cellMap.get(k).number = p.number;
     });
   }
@@ -282,14 +286,22 @@ export function renderGrid(layout, opts = {}) {
       }
       const input = document.createElement("input");
       input.className = "cw-input";
-      input.maxLength = 1;
       input.dataset.r = r;
       input.dataset.c = c;
       input.setAttribute("inputmode", "text");
       input.autocomplete = "off";
+      input.autocapitalize = "off";
+      input.spellcheck = false;
+
+      const isHint = hintIntersections && info.count >= 2;
       if (reveal) {
         input.value = info.ch;
         input.readOnly = true;
+      } else if (isHint) {
+        // 교차 칸은 정답 글자를 미리 채워 힌트로 제공(수정 불가)
+        input.value = info.ch;
+        input.readOnly = true;
+        cellEl.classList.add("cw-hint");
       }
       if (!interactive) input.readOnly = true;
       cellEl.appendChild(input);
@@ -298,20 +310,74 @@ export function renderGrid(layout, opts = {}) {
     }
   }
 
-  // 한 칸 입력하면 자동으로 다음 칸으로 이동
+  // 다음에 입력할 칸 찾기(오른쪽 우선, 없으면 아래). 힌트/읽기전용 칸은 건너뜀
+  function nextCell(inp) {
+    let r = +inp.dataset.r;
+    let c = +inp.dataset.c;
+    for (let step = 0; step < 2; step++) {
+      const cand =
+        inputs.get(r + "," + (c + 1)) || inputs.get(r + 1 + "," + c);
+      if (!cand) return null;
+      if (!cand.readOnly) return cand;
+      // 읽기전용(힌트) 칸이면 그 너머로 한 칸 더
+      r = +cand.dataset.r;
+      c = +cand.dataset.c;
+    }
+    return null;
+  }
+
+  // 한글 IME 안전 입력 처리.
+  // 핵심: 조합(composition) 중에는 칸을 넘기지 않고, 조합이 끝났을 때만 정리/이동.
+  // 그래야 "청" 이 "ㅊ/ㅓ/ㅇ" 으로 흩어지지 않음.
   if (interactive && !reveal) {
+    let composing = false;
+
+    // 한 칸에 여러 글자가 들어오면 첫 글자만 남기고 나머지는 다음 칸으로 밀어 넣음
+    function finalize(inp) {
+      if (inp.readOnly) return;
+      const chars = Array.from(inp.value);
+      if (chars.length === 0) {
+        wrap.dispatchEvent(new CustomEvent("cw-change"));
+        return;
+      }
+      inp.value = chars[0];
+      let cur = inp;
+      for (let i = 1; i < chars.length; i++) {
+        const nxt = nextCell(cur);
+        if (!nxt) break;
+        nxt.value = chars[i];
+        cur = nxt;
+      }
+      const after = nextCell(cur);
+      if (after) after.focus();
+      wrap.dispatchEvent(new CustomEvent("cw-change"));
+    }
+
+    wrap.addEventListener("compositionstart", (e) => {
+      if (e.target.classList.contains("cw-input")) composing = true;
+    });
+    wrap.addEventListener("compositionend", (e) => {
+      if (!e.target.classList.contains("cw-input")) return;
+      composing = false;
+      finalize(e.target);
+    });
     wrap.addEventListener("input", (e) => {
       const t = e.target;
       if (!t.classList.contains("cw-input")) return;
-      if (t.value.length >= 1) {
+      if (e.isComposing || composing) return; // 조합 중이면 대기
+      finalize(t);
+    });
+    // 빈 칸에서 백스페이스 시 이전 칸으로 이동
+    wrap.addEventListener("keydown", (e) => {
+      const t = e.target;
+      if (!t.classList.contains("cw-input")) return;
+      if (e.key === "Backspace" && t.value === "") {
         const r = +t.dataset.r;
         const c = +t.dataset.c;
-        // 오른쪽 우선, 없으면 아래
-        const next =
-          inputs.get(r + "," + (c + 1)) || inputs.get(r + 1 + "," + c);
-        if (next) next.focus();
+        const prev =
+          inputs.get(r + "," + (c - 1)) || inputs.get(r - 1 + "," + c);
+        if (prev && !prev.readOnly) prev.focus();
       }
-      wrap.dispatchEvent(new CustomEvent("cw-change", { bubbles: false }));
     });
   }
 

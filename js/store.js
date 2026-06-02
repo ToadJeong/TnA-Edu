@@ -87,6 +87,19 @@ export async function addSubmission(record) {
   return { id: docRef.id };
 }
 
+// ── 제출 로그 전체 삭제(관리자) — 순위 초기화 ─────────────────────────
+export async function clearSubmissions() {
+  if (!isConfigured()) {
+    localStorage.removeItem("tna_subs");
+    return;
+  }
+  const database = await db();
+  const col = _fs.collection(database, "submissions");
+  const snap = await _fs.getDocs(col);
+  // 문서를 하나씩 삭제(소규모 행사 기준으로 충분)
+  await Promise.all(snap.docs.map((d) => _fs.deleteDoc(d.ref)));
+}
+
 // ── 제출 로그 전체 조회(관리자) — 제출 시각 오름차순(선착순) ──────────
 export async function listSubmissions() {
   if (!isConfigured()) {

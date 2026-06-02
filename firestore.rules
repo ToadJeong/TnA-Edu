@@ -19,8 +19,9 @@ service cloud.firestore {
     match /submissions/{doc} {
       allow create: if request.resource.data.name is string
                     && request.resource.data.department is string;
-      allow read: if true;   // 관리자 로그 화면에서 조회. 민감정보 없음(이름/소속).
-      allow update, delete: if false;
+      allow read: if true;    // 관리자 로그 화면에서 조회. 민감정보 없음(이름/소속).
+      allow delete: if true;  // 관리자 '순위 초기화' 기능에서 사용(사내 행사용 간이 구성).
+      allow update: if false;
     }
   }
 }

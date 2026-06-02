@@ -3,69 +3,101 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CJ ENM · T&A사업부 가로세로 낱말퀴즈</title>
+    <title>CJ ENM · T&A사업부 컴플라이언스 낱말퀴즈</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
     <header class="topbar">
-      <div class="org" id="org">CJ ENM · T&A사업부</div>
-      <div class="title" id="title">가로세로 낱말퀴즈</div>
-      <div class="subtitle" id="subtitle">선착순 정답자 이벤트</div>
+      <div class="topbar-inner">
+        <img class="logo" src="assets/logo.svg" alt="CJ ENM" />
+        <div class="divider"></div>
+        <div class="titles">
+          <div class="org" id="org">T&A사업부</div>
+          <div class="title" id="title">컴플라이언스 가로세로 낱말퀴즈</div>
+          <div class="subtitle" id="subtitle">2026년 협력사 교육 · 선착순 정답자 이벤트</div>
+        </div>
+      </div>
     </header>
 
     <main class="wrap">
       <div id="demoBanner" class="banner hidden">
         ⚠️ 데모 모드 — Firebase가 아직 설정되지 않아 기록이 이 브라우저에만
-        저장됩니다. 실제 행사 전에 <code>js/firebase-config.js</code> 설정이
-        필요합니다. (README 참고)
+        저장됩니다. 실제 행사 전 <code>js/firebase-config.js</code> 설정이
+        필요합니다.
       </div>
 
-      <div class="card">
-        <h2>① 퍼즐을 풀어주세요</h2>
-        <div class="cw-scroll">
-          <div id="grid"></div>
-        </div>
-        <div class="no-print" style="margin-top: 14px">
-          <button id="checkBtn" class="btn-ghost">정답 확인</button>
-          <span id="checkStatus" class="status"></span>
-        </div>
-      </div>
-
-      <div class="card">
-        <h2>힌트</h2>
-        <div class="clues">
-          <div>
-            <h3>가로 열쇠</h3>
-            <ol id="acrossClues"></ol>
+      <!-- 시작 화면 -->
+      <div class="card" id="introCard">
+        <div class="intro">
+          <h2 id="introTitle">컴플라이언스 가로세로 낱말퀴즈</h2>
+          <p>이름과 소속만 입력하면 참여할 수 있어요. 먼저 정답을 제출한 순서대로 기록됩니다.</p>
+          <div class="rules">
+            • <b>시작하기</b>를 누르면 퍼즐이 공개되고 <b>풀이 시간 측정</b>이 시작됩니다.<br />
+            • 칸을 채우고 <b>정답 확인</b> → 이름·소속 입력 → <b>제출</b>!<br />
+            • 회색(보라) 칸은 미리 채워진 <b>힌트 글자</b>입니다.<br />
+            • 순위는 <b>제출 순서</b>와 <b>풀이 시간</b>으로 가립니다.
           </div>
           <div>
-            <h3>세로 열쇠</h3>
-            <ol id="downClues"></ol>
+            <button id="startBtn" class="btn-primary btn-lg">시작하기 🚀</button>
           </div>
         </div>
       </div>
 
-      <div class="card no-print" id="submitCard">
-        <h2>② 정답을 모두 맞췄다면 제출하세요</h2>
-        <p class="muted">
-          이름과 소속만 입력하면 됩니다. 먼저 제출한 순서대로 기록됩니다.
-        </p>
-        <div class="row">
-          <div>
-            <label for="name">이름</label>
-            <input id="name" type="text" placeholder="홍길동" autocomplete="name" />
+      <!-- 게임 영역 (시작 후 표시) -->
+      <div id="gameArea" class="hidden">
+        <div class="card">
+          <div class="timer-bar">
+            <div>
+              <h2 style="margin: 0">① 퍼즐을 풀어주세요</h2>
+              <p class="hd-desc" style="margin: 2px 0 0">
+                보라색 힌트 글자를 참고해 빈 칸을 채우세요.
+              </p>
+            </div>
+            <div class="timer" id="timer">00:00</div>
           </div>
-          <div>
-            <label for="dept">소속 / 부서</label>
-            <input id="dept" type="text" placeholder="T&A사업부 ○○팀" />
+          <div class="cw-scroll">
+            <div id="grid"></div>
+          </div>
+          <div class="no-print" style="margin-top: 16px">
+            <button id="checkBtn" class="btn-ghost">정답 확인</button>
+            <span id="checkStatus" class="status"></span>
           </div>
         </div>
-        <div style="margin-top: 16px">
-          <button id="submitBtn" class="btn-primary" disabled>
-            정답 제출하기
-          </button>
+
+        <div class="card">
+          <h2>힌트</h2>
+          <div class="clues">
+            <div>
+              <h3>가로 열쇠</h3>
+              <ol id="acrossClues"></ol>
+            </div>
+            <div>
+              <h3>세로 열쇠</h3>
+              <ol id="downClues"></ol>
+            </div>
+          </div>
         </div>
-        <div id="submitStatus" class="status"></div>
+
+        <div class="card no-print" id="submitCard">
+          <h2>② 정답을 모두 맞췄다면 제출하세요</h2>
+          <p class="hd-desc">이름과 소속만 입력하면 됩니다.</p>
+          <div class="row">
+            <div>
+              <label for="name">이름</label>
+              <input id="name" type="text" placeholder="홍길동" autocomplete="name" />
+            </div>
+            <div>
+              <label for="dept">소속 / 부서</label>
+              <input id="dept" type="text" placeholder="○○협력사 / ○○팀" />
+            </div>
+          </div>
+          <div style="margin-top: 18px">
+            <button id="submitBtn" class="btn-primary" disabled>
+              정답 제출하기
+            </button>
+          </div>
+          <div id="submitStatus" class="status"></div>
+        </div>
       </div>
 
       <div class="card no-print hidden" id="doneCard">

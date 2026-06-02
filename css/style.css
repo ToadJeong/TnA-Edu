@@ -1,16 +1,18 @@
-/* style.css — CJ ENM · T&A사업부 가로세로 낱말퀴즈 */
+/* style.css — CJ ENM · T&A사업부 컴플라이언스 가로세로 낱말퀴즈 */
 :root {
-  --cell: 44px;
-  --brand: #e60073; /* CJ ENM 핑크 계열 포인트 */
-  --brand-dark: #b3005a;
-  --ink: #1a1a1a;
+  --cell: 50px;
+  --brand: #e2007a; /* CJ 블라썸 매지나 */
+  --brand-dark: #b80063;
+  --brand2: #6a1b9a; /* 퍼플 */
+  --ink: #141414;
   --muted: #6b7280;
-  --line: #d1d5db;
-  --bg: #f6f7f9;
-  --ok: #16a34a;
-  --warn: #d97706;
-  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
-    "Malgun Gothic", system-ui, sans-serif;
+  --line: #c7ccd4;
+  --grid-line: #2b2b2b;
+  --bg: #f4f5f7;
+  --ok: #15803d;
+  --warn: #c2410c;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
 }
 
 * {
@@ -21,146 +23,235 @@ body {
   background: var(--bg);
   color: var(--ink);
   -webkit-text-size-adjust: 100%;
+  line-height: 1.5;
 }
 a {
   color: var(--brand-dark);
 }
 
+/* 상단바 */
 .topbar {
   background: #fff;
   border-bottom: 1px solid var(--line);
-  padding: 14px 18px;
+  padding: 12px 18px;
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
-.topbar .org {
-  font-size: 13px;
+.topbar-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.topbar .logo {
+  height: 34px;
+  width: auto;
+  flex: none;
+}
+.topbar .divider {
+  width: 1px;
+  height: 28px;
+  background: var(--line);
+  flex: none;
+}
+.topbar .titles .org {
+  font-size: 12px;
   color: var(--brand-dark);
   font-weight: 700;
   letter-spacing: 0.02em;
 }
-.topbar .title {
-  font-size: 20px;
+.topbar .titles .title {
+  font-size: 18px;
   font-weight: 800;
-  margin-top: 2px;
+  line-height: 1.2;
 }
-.topbar .subtitle {
-  font-size: 13px;
+.topbar .titles .subtitle {
+  font-size: 12px;
   color: var(--muted);
 }
 
 .wrap {
-  max-width: 920px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 18px 16px 80px;
+  padding: 18px 16px 90px;
+  position: relative;
 }
 
 .banner {
   background: #fff7ed;
   border: 1px solid #fed7aa;
   color: #9a3412;
-  padding: 10px 12px;
+  padding: 11px 13px;
   border-radius: 10px;
   font-size: 13px;
   margin-bottom: 16px;
+}
+.banner code {
+  background: #fde8d0;
+  padding: 1px 5px;
+  border-radius: 4px;
 }
 
 .card {
   background: #fff;
   border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 18px;
+  padding: 20px;
   margin-bottom: 18px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 .card h2 {
-  margin: 0 0 12px;
-  font-size: 16px;
+  margin: 0 0 6px;
+  font-size: 17px;
+}
+.card .hd-desc {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+/* 타이머 */
+.timer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.timer {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 20px;
+  color: var(--brand-dark);
+  background: #fff0f7;
+  border: 1px solid #f6c6df;
+  border-radius: 999px;
+  padding: 6px 16px;
 }
 
 /* 퍼즐 그리드 */
 .cw-scroll {
   overflow-x: auto;
-  padding-bottom: 6px;
+  padding: 4px 0 8px;
 }
 .cw-grid {
   display: grid;
   gap: 0;
   width: max-content;
   margin: 0 auto;
+  background: var(--grid-line);
+  border: 2px solid var(--grid-line);
+  border-radius: 4px;
 }
 .cw-cell {
   width: var(--cell);
   height: var(--cell);
-  border: 1px solid var(--line);
   position: relative;
   background: #fff;
+  outline: 1px solid var(--grid-line);
 }
 .cw-blank {
-  background: transparent;
-  border: none;
+  background: var(--grid-line);
+  outline: none;
 }
 .cw-num {
   position: absolute;
-  top: 1px;
-  left: 2px;
-  font-size: 10px;
-  color: var(--muted);
+  top: 2px;
+  left: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--brand-dark);
   line-height: 1;
   pointer-events: none;
+  z-index: 1;
 }
 .cw-input {
   width: 100%;
   height: 100%;
   border: none;
   text-align: center;
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
   background: transparent;
   color: var(--ink);
   padding: 0;
   outline: none;
+  caret-color: var(--brand);
 }
 .cw-input:focus {
-  background: #fff0f7;
+  background: #ffe3f1;
+  box-shadow: inset 0 0 0 2px var(--brand);
+}
+/* 교차 칸: 정답 글자를 미리 보여주는 힌트 */
+.cw-cell.cw-hint {
+  background: #f3ecfb;
+}
+.cw-cell.cw-hint .cw-input {
+  color: var(--brand2);
+  font-weight: 800;
+}
+.cw-cell.correct {
+  background: #e6f6ec !important;
 }
 .cw-cell.correct .cw-input {
-  background: #e8f7ee;
   color: var(--ok);
 }
 
-/* 힌트 목록 */
+/* 힌트(열쇠) 목록 */
 .clues {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  gap: 22px;
 }
 .clues h3 {
-  font-size: 14px;
-  margin: 0 0 8px;
-  color: var(--brand-dark);
+  font-size: 15px;
+  margin: 0 0 10px;
+  color: #fff;
+  background: var(--brand);
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
 }
 .clues ol {
   margin: 0;
-  padding-left: 4px;
+  padding: 0;
   list-style: none;
 }
 .clues li {
-  font-size: 14px;
-  line-height: 1.6;
-  padding: 4px 0;
-  border-bottom: 1px dashed #eee;
+  display: flex;
+  gap: 9px;
+  font-size: 15px;
+  line-height: 1.55;
+  padding: 8px 0;
+  border-bottom: 1px solid #eef0f3;
 }
-.clues li b {
-  color: var(--brand-dark);
-  margin-right: 6px;
+.clues li .qn {
+  flex: none;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #f3ecfb;
+  color: var(--brand2);
+  font-weight: 800;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-@media (max-width: 560px) {
+@media (max-width: 600px) {
   .clues {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
   :root {
-    --cell: 38px;
+    --cell: 42px;
+  }
+  .cw-input {
+    font-size: 21px;
   }
 }
 
@@ -169,22 +260,31 @@ label {
   display: block;
   font-size: 13px;
   color: var(--muted);
-  margin: 10px 0 4px;
+  margin: 12px 0 5px;
+  font-weight: 600;
 }
 input[type="text"],
 input[type="password"],
 textarea {
   width: 100%;
-  padding: 11px 12px;
+  padding: 12px 13px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  font-size: 15px;
+  font-size: 16px;
   font-family: inherit;
 }
+input[type="text"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(226, 0, 122, 0.12);
+}
 textarea {
-  min-height: 220px;
+  min-height: 240px;
   resize: vertical;
-  line-height: 1.5;
+  line-height: 1.55;
+  font-size: 14px;
 }
 .row {
   display: flex;
@@ -199,7 +299,7 @@ button,
   appearance: none;
   border: none;
   border-radius: 10px;
-  padding: 12px 18px;
+  padding: 12px 20px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
@@ -213,12 +313,29 @@ button,
   background: var(--brand-dark);
 }
 .btn-primary:disabled {
-  background: #f1a8cb;
+  background: #f0a9cb;
   cursor: not-allowed;
 }
 .btn-ghost {
-  background: #f3f4f6;
+  background: #f1f2f4;
   color: var(--ink);
+  border: 1px solid var(--line);
+}
+.btn-ghost:hover {
+  background: #e7e9ec;
+}
+.btn-danger {
+  background: #fff;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+.btn-danger:hover {
+  background: #fef2f2;
+}
+.btn-lg {
+  padding: 16px 32px;
+  font-size: 18px;
+  border-radius: 12px;
 }
 
 .status {
@@ -236,16 +353,45 @@ button,
 
 .result-box {
   text-align: center;
-  padding: 24px 16px;
+  padding: 26px 16px;
 }
 .result-box .rank {
-  font-size: 42px;
+  font-size: 44px;
   font-weight: 900;
   color: var(--brand);
 }
 .result-box .msg {
-  margin-top: 6px;
+  margin-top: 8px;
   color: var(--muted);
+}
+
+/* 시작 화면(인트로) — 퍼즐을 가렸다가 시작하기 누르면 시작 */
+.intro {
+  text-align: center;
+  padding: 40px 20px;
+}
+.intro h2 {
+  font-size: 22px;
+  margin: 0 0 10px;
+}
+.intro p {
+  color: var(--muted);
+  font-size: 15px;
+  margin: 6px 0;
+}
+.intro .rules {
+  display: inline-block;
+  text-align: left;
+  background: #faf7fe;
+  border: 1px solid #ead9fb;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 18px 0 24px;
+  font-size: 14px;
+  line-height: 1.9;
+}
+.intro .rules b {
+  color: var(--brand2);
 }
 
 /* 관리자: 로그 테이블 */
@@ -257,7 +403,7 @@ table {
 th,
 td {
   text-align: left;
-  padding: 9px 10px;
+  padding: 10px 11px;
   border-bottom: 1px solid var(--line);
 }
 th {
@@ -291,15 +437,26 @@ tr.first td {
   align-items: center;
   margin-bottom: 12px;
 }
+.seg {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  overflow: hidden;
+}
+.seg button {
+  border-radius: 0;
+  padding: 8px 14px;
+  font-size: 13px;
+  background: #fff;
+  color: var(--muted);
+}
+.seg button.active {
+  background: var(--brand);
+  color: #fff;
+}
 
-/* 인쇄 시: 입력칸은 비우고 그리드/힌트만 깔끔하게 */
+/* 인쇄 시: 입력칸은 비우고 그리드/힌트만 */
 @media print {
-  .topbar,
-  .banner,
-  .no-print,
-  .clues h3 + ol li b {
-    /* keep */
-  }
   .no-print {
     display: none !important;
   }
@@ -308,6 +465,8 @@ tr.first td {
   }
   .cw-input {
     color: transparent !important;
-    background: #fff !important;
+  }
+  .cw-cell.cw-hint .cw-input {
+    color: var(--brand2) !important;
   }
 }

@@ -3,14 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>관리자 · T&A 낱말퀴즈</title>
+    <title>관리자 · 컴플라이언스 낱말퀴즈</title>
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
     <header class="topbar">
-      <div class="org">CJ ENM · T&A사업부</div>
-      <div class="title">낱말퀴즈 관리자</div>
-      <div class="subtitle">문제 편집 · 선착순 정답 로그</div>
+      <div class="topbar-inner">
+        <img class="logo" src="assets/logo.svg" alt="CJ ENM" />
+        <div class="divider"></div>
+        <div class="titles">
+          <div class="org">T&A사업부</div>
+          <div class="title">낱말퀴즈 관리자</div>
+          <div class="subtitle">문제 편집 · 선착순 정답 로그</div>
+        </div>
+      </div>
     </header>
 
     <main class="wrap">
@@ -27,27 +33,25 @@
 
       <div id="adminBody" class="hidden">
         <div id="demoBanner" class="banner hidden">
-          ⚠️ 데모 모드 — Firebase 미설정 상태입니다. 지금 입력하는 내용과 로그는
-          이 브라우저에만 저장됩니다. 실제 운영 전
+          ⚠️ 데모 모드 — Firebase 미설정 상태입니다. 입력 내용과 로그가 이
+          브라우저에만 저장됩니다. 실제 운영 전
           <code>js/firebase-config.js</code> 설정이 필요합니다.
         </div>
 
         <!-- 문제 편집 -->
         <div class="card">
           <h2>① 문제 편집</h2>
-          <p class="muted">
-            입력 형식은 두 가지입니다. (<b>미리보기</b>로 배치를 확인한 뒤
-            <b>저장</b>하세요.)<br />
-            • <b>자동 배치</b> — 한 줄에 <code>정답, 힌트</code>. 정답끼리 같은
-            글자가 있으면 자동으로 교차됩니다.<br />
+          <p class="hd-desc">
+            입력 형식 두 가지. <b>미리보기</b>로 배치를 확인한 뒤 <b>저장</b>하세요.<br />
+            • <b>자동 배치</b> — 한 줄에 <code>정답, 힌트</code> (글자 겹치면 자동 교차)<br />
             • <b>수동 배치(인쇄본과 동일)</b> — 한 줄에
             <code>정답 | 힌트 | 방향 | 행 | 열 | 번호</code> (방향: 가로/세로).
             힌트에 쉼표가 있어도 됩니다. 한 줄이라도 <code>|</code> 를 쓰면 전체가
             수동 배치로 처리됩니다.
           </p>
           <label for="puzzleTitle">퍼즐 제목</label>
-          <input id="puzzleTitle" type="text" placeholder="T&A 가로세로 낱말퀴즈" />
-          <label for="wordsArea">문제 목록 (정답, 힌트)</label>
+          <input id="puzzleTitle" type="text" placeholder="컴플라이언스 가로세로 낱말퀴즈" />
+          <label for="wordsArea">문제 목록</label>
           <textarea id="wordsArea" spellcheck="false"></textarea>
           <div class="toolbar" style="margin-top: 12px">
             <button id="previewBtn" class="btn-ghost">미리보기</button>
@@ -61,10 +65,16 @@
 
         <!-- 정답 로그 -->
         <div class="card">
-          <h2>② 선착순 정답 로그</h2>
+          <h2>② 정답 로그</h2>
           <div class="toolbar">
+            <span class="muted">정렬:</span>
+            <div class="seg" id="sortSeg">
+              <button data-sort="order" class="active">제출 순서(선착순)</button>
+              <button data-sort="time">풀이 시간(빠른순)</button>
+            </div>
             <button id="refreshBtn" class="btn-ghost">새로고침</button>
             <button id="csvBtn" class="btn-ghost">CSV 내려받기</button>
+            <button id="resetBtn" class="btn-danger">순위 초기화</button>
             <span id="logStatus" class="muted"></span>
           </div>
           <table>
@@ -74,7 +84,7 @@
                 <th>이름</th>
                 <th>소속/부서</th>
                 <th>제출 시각</th>
-                <th>소요 시간</th>
+                <th>풀이 시간</th>
               </tr>
             </thead>
             <tbody id="logBody"></tbody>

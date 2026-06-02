@@ -4,6 +4,7 @@ import {
   loadPuzzle,
   savePuzzle,
   listSubmissions,
+  clearSubmissions,
   isConfigured,
 } from "./store.js";
 import { ADMIN_PASSWORD } from "./firebase-config.js";
@@ -105,42 +106,79 @@ function fmtDuration(ms) {
   return m > 0 ? `${m}분 ${s % 60}초` : `${s}초`;
 }
 
-let lastLog = [];
+let lastLog = []; // 원본(선착순)
+let sortMode = "order"; // "order"(제출 순서) | "time"(풀이 시간)
+
+// 현재 정렬 기준으로 정렬한 사본 반환
+function sortedLog() {
+  if (sortMode === "time") {
+    return [...lastLog].sort((a, b) => {
+      const da = a.durationMs ?? Infinity;
+      const db = b.durationMs ?? Infinity;
+      return da - db;
+    });
+  }
+  return lastLog; // 이미 선착순(제출 시각 오름차순)
+}
 
 async function loadLog() {
   setStatus("logStatus", "불러오는 중…", "");
   try {
-    const subs = await listSubmissions(); // 이미 선착순 정렬됨
-    lastLog = subs;
-    const body = $("logBody");
-    if (subs.length === 0) {
-      body.innerHTML =
-        '<tr><td colspan="5" class="muted">아직 제출된 정답이 없습니다.</td></tr>';
-    } else {
-      body.innerHTML = subs
-        .map(
-          (s, i) => `
-        <tr class="${i === 0 ? "first" : ""}">
-          <td><span class="rank-badge">${i + 1}</span>${i === 0 ? " 🏆" : ""}</td>
-          <td>${escapeHtml(s.name)}</td>
-          <td>${escapeHtml(s.department)}</td>
-          <td>${fmtTime(s.createdAtMs)}</td>
-          <td>${fmtDuration(s.durationMs)}</td>
-        </tr>`
-        )
-        .join("");
-    }
-    setStatus("logStatus", `총 ${subs.length}명 제출`, "");
+    lastLog = await listSubmissions(); // 선착순 정렬된 원본
+    renderLog();
+    setStatus("logStatus", `총 ${lastLog.length}명 제출`, "");
   } catch (e) {
     console.error(e);
     setStatus("logStatus", "로그 조회 실패: " + e.message, "");
   }
 }
 
+function renderLog() {
+  const subs = sortedLog();
+  const body = $("logBody");
+  if (subs.length === 0) {
+    body.innerHTML =
+      '<tr><td colspan="5" class="muted">아직 제출된 정답이 없습니다.</td></tr>';
+    return;
+  }
+  body.innerHTML = subs
+    .map(
+      (s, i) => `
+    <tr class="${i === 0 ? "first" : ""}">
+      <td><span class="rank-badge">${i + 1}</span>${i === 0 ? " 🏆" : ""}</td>
+      <td>${escapeHtml(s.name)}</td>
+      <td>${escapeHtml(s.department)}</td>
+      <td>${fmtTime(s.createdAtMs)}</td>
+      <td>${fmtDuration(s.durationMs)}</td>
+    </tr>`
+    )
+    .join("");
+}
+
+async function resetLog() {
+  if (
+    !confirm(
+      "정답 로그(순위)를 모두 삭제합니다.\n되돌릴 수 없습니다. 계속할까요?"
+    )
+  )
+    return;
+  setStatus("logStatus", "초기화 중…", "");
+  try {
+    await clearSubmissions();
+    lastLog = [];
+    renderLog();
+    setStatus("logStatus", "순위가 초기화되었습니다.", "");
+  } catch (e) {
+    console.error(e);
+    setStatus("logStatus", "초기화 실패: " + e.message, "");
+  }
+}
+
 function downloadCsv() {
-  if (lastLog.length === 0) return;
-  const rows = [["순위", "이름", "소속/부서", "제출시각", "소요시간(초)"]];
-  lastLog.forEach((s, i) => {
+  const list = sortedLog();
+  if (list.length === 0) return;
+  const rows = [["순위", "이름", "소속/부서", "제출시각", "풀이시간(초)"]];
+  list.forEach((s, i) => {
     rows.push([
       i + 1,
       s.name,
@@ -199,6 +237,16 @@ function init() {
   $("saveBtn").addEventListener("click", doSave);
   $("refreshBtn").addEventListener("click", loadLog);
   $("csvBtn").addEventListener("click", downloadCsv);
+  $("resetBtn").addEventListener("click", resetLog);
+  $("sortSeg").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-sort]");
+    if (!btn) return;
+    sortMode = btn.dataset.sort;
+    $("sortSeg")
+      .querySelectorAll("button")
+      .forEach((b) => b.classList.toggle("active", b === btn));
+    renderLog();
+  });
 }
 
 init();
