@@ -4,21 +4,28 @@ import {
   renderGrid,
   packComponents,
   splitSyllables,
-} from "./crossword.js?v=15";
+} from "./crossword.js?v=17";
 import {
+  listPuzzles,
   loadPuzzle,
-  savePuzzle,
+  createPuzzle,
+  updatePuzzle,
+  deletePuzzle,
+  getActiveId,
+  setActiveId,
   listSubmissions,
   clearSubmissions,
   isConfigured,
-} from "./store.js?v=15";
-import { ADMIN_PASSWORD } from "./firebase-config.js?v=15";
+} from "./store.js?v=17";
+import { ADMIN_PASSWORD } from "./firebase-config.js?v=17";
 
 const $ = (id) => document.getElementById(id);
 
 // ── 에디터 상태 ───────────────────────────────────────────────────────
 let editorWords = []; // [{answer, clue, dir, row, col}]
 let hintEnabled = true;
+let currentPuzzleId = null; // 편집 중 퍼즐
+let activeId = null; // 진행 중 퍼즐
 
 // 서로 교차하지 않는데 칸이 맞붙은 곳 + 글자 충돌을 찾아 표시용 Set/메시지 반환
 function analyze(words) {
@@ -315,12 +322,13 @@ async function doSave() {
   }
   setStatus("saveStatus", "저장 중…", "");
   try {
-    await savePuzzle({
-      title: $("puzzleTitle").value.trim(),
+    await updatePuzzle(currentPuzzleId, {
+      title: $("puzzleTitle").value.trim() || "제목 없는 퍼즐",
       hintEnabled,
       words,
     });
-    setStatus("saveStatus", "저장되었습니다. 참가자 화면에 즉시 반영됩니다.", "ok");
+    setStatus("saveStatus", "저장되었습니다.", "ok");
+    await refreshPuzzleSelect(); // 제목 변경 반영
   } catch (e) {
     console.error(e);
     setStatus("saveStatus", "저장 실패: " + e.message, "bad");
@@ -342,9 +350,9 @@ function sortedLog() {
 async function loadLog() {
   setStatus("logStatus", "불러오는 중…", "");
   try {
-    lastLog = await listSubmissions();
+    lastLog = await listSubmissions(currentPuzzleId);
     renderLog();
-    setStatus("logStatus", `총 ${lastLog.length}명 제출`, "");
+    setStatus("logStatus", `이 퍼즐 제출 ${lastLog.length}명`, "");
   } catch (e) {
     console.error(e);
     setStatus("logStatus", "로그 조회 실패: " + e.message, "");
@@ -374,11 +382,13 @@ function renderLog() {
 }
 
 async function resetLog() {
-  if (!confirm("정답 로그(순위)를 모두 삭제합니다.\n되돌릴 수 없습니다. 계속할까요?"))
+  if (
+    !confirm("이 퍼즐의 정답 로그(순위)를 모두 삭제합니다.\n되돌릴 수 없습니다. 계속할까요?")
+  )
     return;
   setStatus("logStatus", "초기화 중…", "");
   try {
-    await clearSubmissions();
+    await clearSubmissions(currentPuzzleId);
     lastLog = [];
     renderLog();
     $("drawBox").classList.add("hidden");
@@ -461,12 +471,36 @@ function setStatus(id, msg, kind) {
   el.className = (id === "logStatus" ? "muted " : "status ") + (kind || "");
 }
 
-// ── 진입 ──────────────────────────────────────────────────────────────
-async function enterAdmin() {
-  $("loginCard").classList.add("hidden");
-  $("adminBody").classList.remove("hidden");
-  if (!isConfigured()) $("demoBanner").classList.remove("hidden");
-  const puzzle = await loadPuzzle();
+// ── 퍼즐 선택/관리 ─────────────────────────────────────────────────────
+async function refreshPuzzleSelect() {
+  const list = await listPuzzles();
+  activeId = await getActiveId();
+  const sel = $("puzzleSelect");
+  sel.innerHTML = list
+    .map(
+      (p) =>
+        `<option value="${p.id}">${p.id === activeId ? "▶ " : ""}${escapeHtml(
+          p.title
+        )}</option>`
+    )
+    .join("");
+  if (!currentPuzzleId || !list.find((p) => p.id === currentPuzzleId))
+    currentPuzzleId = (list[0] && list[0].id) || null;
+  sel.value = currentPuzzleId || "";
+  updateActiveBadge();
+  return list;
+}
+function updateActiveBadge() {
+  const isActive = currentPuzzleId && currentPuzzleId === activeId;
+  $("activeBadge").textContent = isActive
+    ? "✅ 지금 진행 중인 퍼즐"
+    : "이 퍼즐은 진행 중이 아닙니다";
+  $("activeBadge").className = "muted" + (isActive ? " is-active" : "");
+}
+
+async function selectPuzzle(id) {
+  currentPuzzleId = id;
+  const puzzle = await loadPuzzle(id);
   $("puzzleTitle").value = puzzle.title || "";
   hintEnabled = puzzle.hintEnabled !== false;
   $("hintToggle").checked = hintEnabled;
@@ -477,11 +511,58 @@ async function enterAdmin() {
     row: Number.isFinite(w.row) ? w.row : 0,
     col: Number.isFinite(w.col) ? w.col : 0,
   }));
-  // 좌표가 없던(자동배치) 데이터면 한번 정렬해 좌표 부여
-  if (editorWords.some((w) => !Number.isFinite(w.row))) arrange();
+  if (editorWords.length && editorWords.some((w) => !Number.isFinite(w.row)))
+    arrange();
+  updateActiveBadge();
   renderWordList();
   renderPreview();
   await loadLog();
+}
+
+async function newPuzzle() {
+  const id = await createPuzzle({ title: "새 퍼즐", words: [], hintEnabled: true });
+  await refreshPuzzleSelect();
+  $("puzzleSelect").value = id;
+  await selectPuzzle(id);
+  $("puzzleTitle").focus();
+}
+
+async function removePuzzle() {
+  const list = await listPuzzles();
+  if (list.length <= 1) {
+    setStatus("saveStatus", "마지막 퍼즐은 삭제할 수 없어요.", "bad");
+    return;
+  }
+  if (!confirm("이 퍼즐을 삭제할까요? 되돌릴 수 없습니다.")) return;
+  await deletePuzzle(currentPuzzleId);
+  if (activeId === currentPuzzleId) {
+    const rest = list.filter((p) => p.id !== currentPuzzleId);
+    if (rest[0]) await setActiveId(rest[0].id);
+  }
+  currentPuzzleId = null;
+  await refreshPuzzleSelect();
+  await selectPuzzle($("puzzleSelect").value);
+}
+
+async function activatePuzzle() {
+  if (!currentPuzzleId) return;
+  await setActiveId(currentPuzzleId);
+  activeId = currentPuzzleId;
+  await refreshPuzzleSelect();
+  setStatus("saveStatus", "이 퍼즐을 진행 중으로 설정했습니다.", "ok");
+}
+
+// ── 진입 ──────────────────────────────────────────────────────────────
+async function enterAdmin() {
+  $("loginCard").classList.add("hidden");
+  $("adminBody").classList.remove("hidden");
+  if (!isConfigured()) $("demoBanner").classList.remove("hidden");
+  const list = await refreshPuzzleSelect();
+  // 진행 중 퍼즐을 우선 편집 대상으로
+  const startId = (activeId && list.find((p) => p.id === activeId) && activeId) ||
+    (list[0] && list[0].id);
+  $("puzzleSelect").value = startId;
+  await selectPuzzle(startId);
 }
 
 function init() {
@@ -495,6 +576,10 @@ function init() {
   $("hintToggle").addEventListener("change", (e) => {
     hintEnabled = e.target.checked;
   });
+  $("puzzleSelect").addEventListener("change", (e) => selectPuzzle(e.target.value));
+  $("newPuzzleBtn").addEventListener("click", newPuzzle);
+  $("deletePuzzleBtn").addEventListener("click", removePuzzle);
+  $("activateBtn").addEventListener("click", activatePuzzle);
   $("addWordBtn").addEventListener("click", addWord);
   $("arrangeBtn").addEventListener("click", arrange);
   $("saveBtn").addEventListener("click", doSave);

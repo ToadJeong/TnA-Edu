@@ -1,11 +1,12 @@
 // app.js — 참가자 페이지 로직
-import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=15";
-import { loadPuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=15";
-import { EVENT } from "./firebase-config.js?v=15";
+import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=17";
+import { loadActivePuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=17";
+import { EVENT } from "./firebase-config.js?v=17";
 
 const $ = (id) => document.getElementById(id);
 
 let puzzle = null;
+let activePuzzleId = null;
 let layout = null;
 let render = null;
 let startedAt = 0;
@@ -229,8 +230,20 @@ function startGame() {
     });
   }
 
+  fitGrid(); // 화면 폭에 맞게 칸 크기 자동 조정
   startTimer();
   $("gameArea").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// 퍼즐을 화면(컨테이너) 폭에 맞춰 한눈에 들어오도록 칸 크기 자동 계산
+function fitGrid() {
+  if (!render || !layout || zoom != null) return; // 수동 확대/축소 중이면 건드리지 않음
+  const scroll = $("gridScroll");
+  const avail = (scroll ? scroll.clientWidth : 320) - 6;
+  if (avail <= 0 || !layout.cols) return;
+  let cell = Math.floor(avail / layout.cols);
+  cell = Math.max(24, Math.min(52, cell)); // 너무 작거나 크지 않게
+  render.gridEl.style.setProperty("--cell", cell + "px");
 }
 
 async function onSubmit() {
@@ -245,7 +258,7 @@ async function onSubmit() {
   $("submitBtn").disabled = true;
   setSubmitStatus("제출 중…", "");
   try {
-    await addSubmission({ name, department: dept, durationMs });
+    await addSubmission({ name, department: dept, durationMs, puzzleId: activePuzzleId });
     submitted = true;
     stopTimer();
     showDone(name, durationMs);
@@ -315,7 +328,7 @@ async function openRanking() {
   $("rankStatus").textContent = "불러오는 중…";
   $("rankCard").scrollIntoView({ behavior: "smooth", block: "start" });
   try {
-    rankAll = await listSubmissions();
+    rankAll = await listSubmissions(activePuzzleId);
     renderRanking();
   } catch (e) {
     console.error(e);
@@ -360,7 +373,8 @@ function closeRanking() {
 async function init() {
   setHeader();
   if (!isConfigured()) $("demoBanner").classList.remove("hidden");
-  puzzle = await loadPuzzle();
+  puzzle = await loadActivePuzzle();
+  activePuzzleId = puzzle.id;
   if (puzzle.title) {
     $("title").textContent = puzzle.title;
     $("introTitle").textContent = puzzle.title;
@@ -400,7 +414,12 @@ async function init() {
   });
   $("zoomReset").addEventListener("click", () => {
     zoom = null;
-    if (render) render.gridEl.style.removeProperty("--cell");
+    fitGrid(); // 화면 맞춤으로 복귀
+  });
+  let resizeT;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(fitGrid, 150);
   });
 
   // 랭킹

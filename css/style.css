@@ -823,3 +823,39 @@ button:active { transform: translateY(1px) scale(0.99); }
 @media (max-width: 360px) {
   :root { --cell: 32px; }
 }
+
+/* ───────── 모바일 상단바: 한 줄 압축 + 고정 해제(화면 가림 방지) ───────── */
+@media (max-width: 720px) {
+  .topbar { position: static; padding: 8px 12px; }
+  .topbar-inner { flex-wrap: nowrap; gap: 8px; }
+  .topbar .logo { height: 24px; }
+  .topbar .divider { display: none; }
+  .titles { flex: 1 1 auto; min-width: 0; }
+  .topbar .titles .org,
+  .topbar .titles .subtitle { display: none; }
+  .topbar .titles .title {
+    font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .topbar-nav { flex: 0 0 auto; gap: 6px; margin-left: 6px; }
+  .nav-btn { padding: 6px 9px; font-size: 12px; }
+}
+
+/* ───────── 그리드 칸 정렬 보강(줄 어긋남 방지) ───────── */
+.cw-cell { overflow: hidden; box-sizing: border-box; }
+.cw-ch { line-height: 1; }
+.cw-grid { line-height: normal; }
+
+/* 관리자 퍼즐 선택 바 */
+.puzzle-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.puzzle-bar select {
+  flex: 1 1 180px; min-width: 140px; padding: 9px 10px;
+  border: 1px solid var(--line); border-radius: 9px; font-size: 14px; font-family: inherit;
+}
+.puzzle-bar .is-active { color: var(--ok); font-weight: 800; }
+
+/* 모바일/태블릿: 상단바엔 로고+버튼만 (긴 제목은 본문에서 표시 → 잘림 없음) */
+@media (max-width: 720px) {
+  .topbar .titles { display: none; }
+  .topbar-inner { justify-content: space-between; flex-wrap: nowrap; }
+  .topbar-nav { margin-left: 0; }
+}

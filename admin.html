@@ -4,12 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>관리자 · 컴플라이언스 낱말퀴즈</title>
-    <link rel="stylesheet" href="css/style.css?v=15" />
+    <link rel="stylesheet" href="css/style.css?v=17" />
   </head>
   <body>
     <header class="topbar">
       <div class="topbar-inner">
-        <img class="logo" src="assets/logo.png?v=15" alt="CJ ENM" onerror="this.onerror=null;this.src='assets/logo.svg?v=15'" />
+        <img class="logo" src="assets/logo.png?v=17" alt="CJ ENM" onerror="this.onerror=null;this.src='assets/logo.svg?v=17'" />
         <div class="divider"></div>
         <div class="titles">
           <div class="org">T&A사업부</div>
@@ -44,7 +44,15 @@
         <!-- 문제 편집 (비주얼 에디터) -->
         <div class="card">
           <h2>① 문제 편집</h2>
+          <div class="puzzle-bar">
+            <select id="puzzleSelect" aria-label="퍼즐 선택"></select>
+            <button id="newPuzzleBtn" class="btn-ghost">+ 새 퍼즐</button>
+            <button id="activateBtn" class="btn-primary">이 퍼즐 진행</button>
+            <button id="deletePuzzleBtn" class="btn-danger">삭제</button>
+            <span id="activeBadge" class="muted"></span>
+          </div>
           <p class="hd-desc">
+            여러 퍼즐을 만들 수 있어요. <b>이 퍼즐 진행</b>으로 지정한 퍼즐이 참가자에게 보입니다.<br />
             단어·힌트를 입력하고, <b>방향</b> 버튼과 <b>◀▲▼▶</b> 로 위치를 옮기면
             오른쪽 미리보기에 바로 반영됩니다. 다 되면 <b>저장</b>을 누르세요.
             서로 안 이어지는 단어가 붙으면 빨갛게 표시됩니다 — <b>🧩 자동 정렬</b>로 한 번에 정리할 수 있어요.
@@ -120,6 +128,6 @@
       </div>
     </main>
 
-    <script type="module" src="js/admin.js?v=15"></script>
+    <script type="module" src="js/admin.js?v=17"></script>
   </body>
 </html>
