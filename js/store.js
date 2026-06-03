@@ -5,8 +5,8 @@
 //   config/active     : { activeId }
 //   submissions/{id}  : { name, department, durationMs, puzzleId, createdAt }
 
-import { firebaseConfig } from "./firebase-config.js?v=19";
-import { DEFAULT_PUZZLE } from "../data/sample-puzzle.js?v=19";
+import { firebaseConfig } from "./firebase-config.js?v=20";
+import { DEFAULT_PUZZLE } from "../data/sample-puzzle.js?v=20";
 
 const SDK = "https://www.gstatic.com/firebasejs/10.12.0";
 

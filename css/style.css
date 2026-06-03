@@ -858,3 +858,91 @@ button:active { transform: translateY(1px) scale(0.99); }
   .topbar-inner { justify-content: space-between; flex-wrap: nowrap; }
   .topbar-nav { margin-left: 0; }
 }
+
+/* ════════════════ 디자인 리프레시 (v20) ════════════════ */
+:root {
+  --bg: #eef1f6;
+  --ink: #191c23;
+  --muted: #6e7686;
+  --line: #e3e7ef;
+}
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background:
+    radial-gradient(1100px 480px at 100% -8%, rgba(22, 104, 214, 0.08), transparent 60%),
+    radial-gradient(820px 460px at -8% 2%, rgba(232, 51, 13, 0.05), transparent 55%),
+    var(--bg);
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 상단바: 하단 CJ 그라데이션 라인 + 부드러운 그림자 */
+.topbar {
+  border-bottom: none;
+  box-shadow: 0 1px 0 var(--line), 0 8px 24px rgba(20, 24, 33, 0.05);
+}
+.topbar::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--brand), var(--accent) 55%, var(--brand2));
+}
+
+/* 카드 */
+.card {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 6px 22px rgba(20, 24, 33, 0.06);
+  padding: 22px;
+}
+.card h2 { font-weight: 800; letter-spacing: -0.02em; }
+
+/* 버튼 */
+button, .btn {
+  border-radius: 12px;
+  transition: transform 0.08s ease, box-shadow 0.16s ease, filter 0.16s ease, background 0.16s ease;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #2f80ed, var(--brand));
+  box-shadow: 0 6px 16px rgba(22, 104, 214, 0.28);
+}
+.btn-primary:hover { background: linear-gradient(135deg, #2474e4, var(--brand-dark)); }
+.btn-primary:disabled { background: #aebfd9; box-shadow: none; }
+.btn-lg { border-radius: 14px; box-shadow: 0 8px 22px rgba(22, 104, 214, 0.32); }
+.btn-hint { box-shadow: 0 5px 14px rgba(247, 163, 0, 0.3); }
+
+/* 인트로 히어로 */
+.intro h2 {
+  font-size: 27px; font-weight: 900; letter-spacing: -0.03em;
+  background: linear-gradient(120deg, var(--brand), var(--brand2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.intro .rules {
+  background: #fff; border: 1px solid var(--line);
+  box-shadow: 0 3px 14px rgba(20, 24, 33, 0.05);
+}
+
+/* 타이머 / 큰 풀이시간 */
+.timer {
+  border: none;
+  background: linear-gradient(135deg, #ecf3ff, #dfeaff);
+  box-shadow: 0 3px 10px rgba(22, 104, 214, 0.16);
+}
+.done-time {
+  background: linear-gradient(120deg, var(--brand), var(--brand2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* 그리드 외곽을 살짝 띄움 */
+.cw-grid { border-radius: 10px; box-shadow: 0 8px 22px rgba(20, 24, 33, 0.12); }
+
+/* 입력/선택 라운드 통일 */
+input[type="text"], input[type="password"], textarea, select { border-radius: 12px; }
+
+/* 모바일 상단바: 고정 해제하되 ::after 라인 위치 유지 위해 relative */
+@media (max-width: 720px) {
+  .topbar { position: relative; }
+  .intro h2 { font-size: 22px; }
+}

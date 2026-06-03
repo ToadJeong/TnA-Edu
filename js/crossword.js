@@ -541,6 +541,33 @@ export function renderGrid(layout, opts = {}) {
     wrap.dispatchEvent(new CustomEvent("cw-change"));
   }
 
+  // 모바일 등에서 한 칸에 글자가 쌓일 때: 마지막(입력 중) 글자만 남기고
+  // 앞 글자들을 진행 방향으로 한 칸씩 확정하며 흘려보낸다.
+  function spillOver(chars) {
+    let k = activeKey;
+    for (let i = 0; i < chars.length - 1; i++) {
+      if (k == null) break;
+      setVal(k, chars[i]);
+      pop(k);
+      k = nextEditable(k, activeDir);
+    }
+    const last = chars[chars.length - 1];
+    if (k != null) {
+      activeKey = k;
+      positionCaret(cellByKey.get(k));
+      setVal(k, last);
+      caret.value = last;
+      highlight(k);
+      caret.focus({ preventScroll: true });
+      try {
+        caret.setSelectionRange(last.length, last.length);
+      } catch (_) {}
+    } else {
+      caret.value = "";
+    }
+    wrap.dispatchEvent(new CustomEvent("cw-change"));
+  }
+
   caret.addEventListener("compositionstart", () => {
     composing = true;
   });
@@ -553,7 +580,12 @@ export function renderGrid(layout, opts = {}) {
     }, 0);
   });
   caret.addEventListener("input", (e) => {
-    if (e.isComposing || composing) return; // 조합 중엔 절대 이동/확정하지 않음
+    // 한 칸에 2글자 이상 쌓이면(주로 모바일) 앞 글자부터 다음 칸으로 보냄
+    if (Array.from(caret.value).length >= 2) {
+      spillOver(Array.from(caret.value));
+      return;
+    }
+    if (e.isComposing || composing) return; // 조합 중엔 이동/확정하지 않음
     if (skipNextInput) {
       skipNextInput = false;
       return;
