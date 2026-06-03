@@ -1,7 +1,7 @@
 // app.js — 참가자 페이지 로직
-import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=21";
-import { loadActivePuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=21";
-import { EVENT } from "./firebase-config.js?v=21";
+import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=22";
+import { loadActivePuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=22";
+import { EVENT } from "./firebase-config.js?v=22";
 
 const $ = (id) => document.getElementById(id);
 
@@ -340,7 +340,7 @@ async function openRanking() {
   $("rankStatus").textContent = "불러오는 중…";
   $("rankCard").scrollIntoView({ behavior: "smooth", block: "start" });
   try {
-    rankAll = await listSubmissions(activePuzzleId);
+    rankAll = await listSubmissions(); // 전체 로드 후 화면에서 퍼즐별 필터
     renderRanking();
     startFireworks();
   } catch (e) {
@@ -351,7 +351,11 @@ async function openRanking() {
   }
 }
 function renderRanking() {
-  let list = rankAll.slice();
+  // 현재 퍼즐 기준으로 필터하되, 결과가 없으면 전체를 보여줌(기록 누락 방지)
+  let list = activePuzzleId
+    ? rankAll.filter((s) => s.puzzleId === activePuzzleId)
+    : rankAll.slice();
+  if (list.length === 0) list = rankAll.slice();
   if (rankScope === "today") list = list.filter((s) => isToday(s.createdAtMs));
   if (rankSort === "time")
     list.sort((a, b) => (a.durationMs ?? Infinity) - (b.durationMs ?? Infinity));

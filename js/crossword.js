@@ -571,6 +571,9 @@ export function renderGrid(layout, opts = {}) {
   caret.addEventListener("compositionstart", () => {
     composing = true;
   });
+  caret.addEventListener("compositionupdate", () => {
+    composing = true; // compositionstart 를 안 보내는 키보드 대비
+  });
   caret.addEventListener("compositionend", () => {
     composing = false;
     skipNextInput = true;
