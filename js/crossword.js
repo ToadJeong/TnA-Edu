@@ -400,32 +400,24 @@ export function renderGrid(layout, opts = {}) {
     return { gridEl: wrap, getWordValue: getWordValueRO, inputs, cellMap, cellByKey };
   }
 
-  // ── 입력형: 단일 캐럿 ──────────────────────────────────────────────
-  // 단일 캐럿: 재부모화(DOM 이동)하면 포커스/IME 조합이 끊기므로,
-  // 그리드 안에 한 번만 두고 "위치만" 옮긴다(조합 연속성 유지).
+  // ── 입력형: 단어 단위 입력기 ───────────────────────────────────────
+  // 칸마다 입력값을 다루지 않고, "현재 단어 전체"를 투명 입력창 하나가 담당한다.
+  // 조합(IME) 중에는 값을 절대 건드리지 않고 입력값을 칸에 '그리기'만 하므로
+  // 받침/이중모음이 칸 사이에서 깨지지 않는다.
   const caret = document.createElement("input");
   caret.className = "cw-caret";
   caret.setAttribute("inputmode", "text");
   caret.autocomplete = "off";
   caret.autocapitalize = "off";
   caret.spellcheck = false;
-  caret.maxLength = 4;
   caret.style.display = "none";
   wrap.style.position = "relative";
   wrap.appendChild(caret);
-  function positionCaret(cell) {
-    caret.style.left = cell.offsetLeft + "px";
-    caret.style.top = cell.offsetTop + "px";
-    caret.style.width = cell.offsetWidth + "px";
-    caret.style.height = cell.offsetHeight + "px";
-    caret.style.display = "block";
-  }
 
-  let activeKey = null;
-  let activeDir = "across";
   let composing = false;
-  let skipNextInput = false;
-  let lastClickKey = null;
+  let activeWord = null;
+  let activeDir = "across";
+  let lastTapKey = null;
 
   const parseK = (k) => k.split(",").map(Number);
   const has = (k) => cellByKey.has(k);
@@ -442,58 +434,47 @@ export function renderGrid(layout, opts = {}) {
   }
   function pop(k) {
     const cell = cellByKey.get(k);
+    if (!cell) return;
     cell.classList.remove("pop");
     void cell.offsetWidth;
     cell.classList.add("pop");
   }
-  // dir 방향으로 다음 "편집 가능" 칸(없으면 null)
-  function nextEditable(k, dir, delta = 1) {
-    let [r, c] = parseK(k);
-    const dr = dir === "down" ? delta : 0;
-    const dc = dir === "across" ? delta : 0;
-    for (let g = 0; g < 128; g++) {
-      r += dr;
-      c += dc;
-      const nk = r + "," + c;
-      if (!has(nk)) return null;
-      if (isEditable(nk)) return nk;
-    }
-    return null;
-  }
-  // 방향키: 빈 칸 건너뛰며 다음 칸(편집불가 포함)
-  function nextAny(k, dir, delta) {
-    let [r, c] = parseK(k);
-    const dr = dir === "down" ? delta : 0;
-    const dc = dir === "across" ? delta : 0;
-    let nr = r + dr,
-      nc = c + dc;
-    for (let g = 0; g < 128; g++) {
-      if (nr < 0 || nc < 0 || nr >= layout.rows || nc >= layout.cols) return null;
-      const nk = nr + "," + nc;
-      if (has(nk)) return nk;
-      nr += dr;
-      nc += dc;
-    }
-    return null;
-  }
-  function highlight(k) {
+  const wordAt = (k, dir) => (dir === "across" ? acrossOf.get(k) : downOf.get(k));
+  const editKeys = (p) =>
+    p ? p.cells.map((c) => c.r + "," + c.c).filter(isEditable) : [];
+
+  function highlightWord() {
     wrap
-      .querySelectorAll(".cw-cell.active, .cw-cell.in-word")
-      .forEach((el) => el.classList.remove("active", "in-word"));
-    const hasA = acrossOf.has(k),
-      hasD = downOf.has(k);
-    if (activeDir === "across" && !hasA && hasD) activeDir = "down";
-    else if (activeDir === "down" && !hasD && hasA) activeDir = "across";
-    const p = activeDir === "across" ? acrossOf.get(k) : downOf.get(k);
-    if (p)
-      for (const cell of p.cells) {
-        const el = cellByKey.get(cell.r + "," + cell.c);
-        if (el) el.classList.add("in-word");
-      }
-    cellByKey.get(k).classList.add("active");
+      .querySelectorAll(".cw-cell.in-word, .cw-cell.caretcell, .cw-cell.active")
+      .forEach((el) => el.classList.remove("in-word", "caretcell", "active"));
+    if (!activeWord) return;
+    for (const c of activeWord.cells) {
+      const el = cellByKey.get(c.r + "," + c.c);
+      if (el) el.classList.add("in-word");
+    }
   }
-  function fireActive(k) {
-    if (!onActive) return;
+  // 커서(다음 입력 칸) 강조 + 캐럿을 그 칸 위치로
+  function markCaretCell() {
+    wrap
+      .querySelectorAll(".cw-cell.caretcell")
+      .forEach((el) => el.classList.remove("caretcell"));
+    const ek = editKeys(activeWord);
+    if (ek.length === 0) return;
+    const sel = caret.selectionStart == null ? caret.value.length : caret.selectionStart;
+    const idx = Math.min(Math.max(0, sel), ek.length - 1);
+    const cell = cellByKey.get(ek[idx]);
+    if (cell) {
+      cell.classList.add("caretcell");
+      caret.style.left = cell.offsetLeft + "px";
+      caret.style.top = cell.offsetTop + "px";
+      caret.style.width = cell.offsetWidth + "px";
+      caret.style.height = cell.offsetHeight + "px";
+      caret.style.display = "block";
+    }
+  }
+  function fireActive() {
+    if (!onActive || !activeWord) return;
+    const k = activeWord.cells[0].r + "," + activeWord.cells[0].c;
     onActive({
       key: k,
       cellEl: cellByKey.get(k),
@@ -502,171 +483,113 @@ export function renderGrid(layout, opts = {}) {
       dir: activeDir,
     });
   }
-  // 편집 칸으로 캐럿 이동(showClue=true 면 힌트 팝업 표시 콜백 호출)
-  function moveTo(k, showClue) {
-    if (!isEditable(k)) return;
-    activeKey = k;
-    positionCaret(cellByKey.get(k)); // 재부모화 없이 위치만 이동
-    caret.value = getVal(k);
-    highlight(k);
-    if (showClue) fireActive(k);
+  // 입력값을 단어 칸에 그린다(조합 중에도 안전 — 값을 바꾸지 않음)
+  function paint() {
+    if (!activeWord) return;
+    const ek = editKeys(activeWord);
+    let chars = Array.from(caret.value);
+    if (chars.length > ek.length) {
+      chars = chars.slice(0, ek.length);
+      if (!composing) caret.value = chars.join("");
+    }
+    for (let i = 0; i < ek.length; i++) {
+      const want = chars[i] || "";
+      if (getVal(ek[i]) !== want) {
+        setVal(ek[i], want);
+        if (want) pop(ek[i]);
+      }
+    }
+    markCaretCell();
+    wrap.dispatchEvent(new CustomEvent("cw-change"));
+  }
+  // 칸 탭 → 그 칸이 속한 단어를 입력 대상으로, 커서를 그 칸에
+  function focusCellAt(k, toggle) {
+    if (!has(k)) return;
+    const hasA = acrossOf.has(k),
+      hasD = downOf.has(k);
+    if (toggle && lastTapKey === k && hasA && hasD)
+      activeDir = activeDir === "across" ? "down" : "across";
+    if (activeDir === "across" && !hasA && hasD) activeDir = "down";
+    else if (activeDir === "down" && !hasD && hasA) activeDir = "across";
+    lastTapKey = k;
+    activeWord = wordAt(k, activeDir);
+    if (!activeWord) return;
+    const ek = editKeys(activeWord);
+    caret.style.display = "block";
+    caret.value = ek.map(getVal).join("");
+    const idx = ek.indexOf(k);
+    const pos = idx >= 0 ? Math.min(idx, caret.value.length) : caret.value.length;
+    highlightWord();
+    fireActive();
     caret.focus({ preventScroll: true });
     try {
-      caret.setSelectionRange(0, caret.value.length);
+      caret.setSelectionRange(pos, pos);
     } catch (_) {}
-  }
-
-  function handleCommit() {
-    if (activeKey == null) return;
-    const chars = Array.from(caret.value);
-    if (chars.length === 0) {
-      setVal(activeKey, "");
-      wrap.dispatchEvent(new CustomEvent("cw-change"));
-      return;
-    }
-    setVal(activeKey, chars[0]);
-    pop(activeKey);
-    let k = activeKey;
-    for (let i = 1; i < chars.length; i++) {
-      const nk = nextEditable(k, activeDir);
-      if (!nk) break;
-      setVal(nk, chars[i]);
-      pop(nk);
-      k = nk;
-    }
-    const after = nextEditable(k, activeDir);
-    caret.value = "";
-    if (after) moveTo(after, false);
-    else caret.value = getVal(activeKey); // 마지막 칸: 확정 글자 유지
-    wrap.dispatchEvent(new CustomEvent("cw-change"));
-  }
-
-  // 모바일 등에서 한 칸에 글자가 쌓일 때: 마지막(입력 중) 글자만 남기고
-  // 앞 글자들을 진행 방향으로 한 칸씩 확정하며 흘려보낸다.
-  function spillOver(chars) {
-    let k = activeKey;
-    for (let i = 0; i < chars.length - 1; i++) {
-      if (k == null) break;
-      setVal(k, chars[i]);
-      pop(k);
-      k = nextEditable(k, activeDir);
-    }
-    const last = chars[chars.length - 1];
-    if (k != null) {
-      activeKey = k;
-      positionCaret(cellByKey.get(k));
-      setVal(k, last);
-      caret.value = last;
-      highlight(k);
-      caret.focus({ preventScroll: true });
-      try {
-        caret.setSelectionRange(last.length, last.length);
-      } catch (_) {}
-    } else {
-      caret.value = "";
-    }
-    wrap.dispatchEvent(new CustomEvent("cw-change"));
+    markCaretCell();
   }
 
   caret.addEventListener("compositionstart", () => {
     composing = true;
   });
   caret.addEventListener("compositionupdate", () => {
-    composing = true; // compositionstart 를 안 보내는 키보드 대비
+    composing = true;
+    paint();
   });
   caret.addEventListener("compositionend", () => {
     composing = false;
-    skipNextInput = true;
-    handleCommit();
-    setTimeout(() => {
-      skipNextInput = false;
-    }, 0);
+    paint();
   });
-  caret.addEventListener("input", (e) => {
-    // 조합(IME) 중에는 절대 건드리지 않음 → 받침/이중모음이 깨지지 않음
-    if (e.isComposing || composing) return;
-    if (skipNextInput) {
-      skipNextInput = false;
-      return;
-    }
-    // 조합이 아닌데 2글자 이상 쌓였으면(조합 이벤트가 없는 키보드/붙여넣기)
-    // 앞 글자부터 다음 칸으로 흘려보냄
-    const chars = Array.from(caret.value);
-    if (chars.length >= 2) {
-      spillOver(chars);
-      return;
-    }
-    handleCommit();
-  });
+  caret.addEventListener("input", () => paint());
+  caret.addEventListener("keyup", () => markCaretCell());
   caret.addEventListener("keydown", (e) => {
-    const k = activeKey;
-    if (k == null) return;
-    const key = e.key;
-    if (key === "ArrowRight") {
-      e.preventDefault();
-      activeDir = "across";
-      const n = nextAny(k, "across", 1);
-      if (n && isEditable(n)) moveTo(n, true);
-    } else if (key === "ArrowLeft") {
-      e.preventDefault();
-      activeDir = "across";
-      const n = nextAny(k, "across", -1);
-      if (n && isEditable(n)) moveTo(n, true);
-    } else if (key === "ArrowDown") {
-      e.preventDefault();
-      activeDir = "down";
-      const n = nextAny(k, "down", 1);
-      if (n && isEditable(n)) moveTo(n, true);
-    } else if (key === "ArrowUp") {
-      e.preventDefault();
-      activeDir = "down";
-      const n = nextAny(k, "down", -1);
-      if (n && isEditable(n)) moveTo(n, true);
-    } else if (key === "Tab") {
-      e.preventDefault();
-      const n = nextEditable(k, activeDir, e.shiftKey ? -1 : 1);
-      if (n) moveTo(n, true);
-    } else if (key === "Backspace") {
-      if (caret.value === "") {
-        e.preventDefault();
-        const prev = nextEditable(k, activeDir, -1);
-        if (prev) {
-          setVal(prev, "");
-          moveTo(prev, false);
-          wrap.dispatchEvent(new CustomEvent("cw-change"));
+    if (!activeWord) return;
+    const dirMove = (dir, delta) => {
+      const ek0 = editKeys(activeWord);
+      const sel = caret.selectionStart == null ? ek0.length - 1 : caret.selectionStart;
+      const baseKey = ek0[Math.min(Math.max(0, sel), ek0.length - 1)] || ek0[0];
+      if (!baseKey) return;
+      let [r, c] = parseK(baseKey);
+      const dr = dir === "down" ? delta : 0,
+        dc = dir === "across" ? delta : 0;
+      for (let g = 0; g < 64; g++) {
+        r += dr;
+        c += dc;
+        if (r < 0 || c < 0 || r >= layout.rows || c >= layout.cols) return;
+        const nk = r + "," + c;
+        if (has(nk)) {
+          activeDir = dir;
+          focusCellAt(nk, false);
+          return;
         }
       }
-      // 값이 있으면 기본 동작(삭제) → input 이벤트로 setVal('') 처리
-    } else if (key === "Delete") {
-      e.preventDefault();
-      setVal(k, "");
-      caret.value = "";
-      wrap.dispatchEvent(new CustomEvent("cw-change"));
-    }
+    };
+    if (e.key === "ArrowRight") { e.preventDefault(); dirMove("across", 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); dirMove("across", -1); }
+    else if (e.key === "ArrowDown") { e.preventDefault(); dirMove("down", 1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); dirMove("down", -1); }
   });
 
-  // 칸 클릭(탭): 편집 칸이면 캐럿 이동 + 힌트 팝업, 같은 칸 재클릭 시 방향 토글.
-  // 편집 불가(미리 주어진) 번호 칸이라도 힌트 팝업은 띄움.
+  // 칸 탭(캐럿은 pointer-events:none 이라 탭은 칸으로 전달됨)
   wrap.addEventListener("pointerdown", (e) => {
     const cell = e.target.closest(".cw-cell");
     if (!cell || !cell.dataset.k) return;
     const k = cell.dataset.k;
     if (isEditable(k)) {
-      if (lastClickKey === k && acrossOf.has(k) && downOf.has(k))
-        activeDir = activeDir === "across" ? "down" : "across";
-      lastClickKey = k;
       e.preventDefault();
-      moveTo(k, true);
+      focusCellAt(k, true);
     } else if (has(k)) {
-      highlight(k);
-      fireActive(k);
+      activeWord = wordAt(k, acrossOf.has(k) ? "across" : "down") || activeWord;
+      activeDir = acrossOf.has(k) ? "across" : "down";
+      highlightWord();
+      fireActive();
     }
   });
 
-  // 첫 편집 칸을 기본 활성으로(포커스/팝업 없이). 실제 위치는 첫 클릭 시 계산.
-  for (const k of chByKey.keys()) {
-    if (isEditable(k)) {
-      activeKey = k;
+  // 첫 편집 칸이 있는 단어를 기본 활성으로(포커스 없이)
+  for (const p of layout.placed) {
+    if (editKeys(p).length) {
+      activeWord = p;
+      activeDir = p.dir;
       break;
     }
   }

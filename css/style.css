@@ -1152,3 +1152,17 @@ body {
 @media (max-width: 720px) {
   .intro { padding: 26px 16px; }
 }
+
+/* ════════ 단어 단위 입력기 (v23) ════════ */
+.cw-caret {
+  color: transparent !important;
+  background: transparent !important;
+  caret-color: transparent !important;
+  box-shadow: none !important;
+  border: none; outline: none; padding: 0;
+  pointer-events: none; z-index: 5;
+}
+/* 현재 입력 칸 깜빡임 */
+.cw-cell.caretcell { box-shadow: inset 0 0 0 3px var(--brand2); z-index: 2; }
+.cw-cell.caretcell { animation: caretblink 1.05s steps(1, start) infinite; }
+@keyframes caretblink { 50% { box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0); } }
