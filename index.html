@@ -4,12 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CJ ENM · T&A사업부 컴플라이언스 낱말퀴즈</title>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+      href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"
     />
-    <link rel="stylesheet" href="css/style.css?v=20" />
+    <link rel="stylesheet" href="css/style.css?v=21" />
   </head>
   <body>
     <header class="topbar">
@@ -40,12 +41,12 @@
         <div class="intro">
           <h2 id="introTitle">컴플라이언스 가로세로 낱말퀴즈</h2>
           <p>이름과 소속을 입력하고 시작하세요. 먼저 정답을 제출한 순서대로 기록됩니다.</p>
-          <div class="rules">
-            • <b>시작하기</b>를 누르면 퍼즐이 공개되고 <b>풀이 시간 측정</b>이 시작됩니다.<br />
-            • 칸을 채우고 <b>정답 확인</b> → <b>제출</b>!<br />
-            • 파란색 칸은 미리 채워진 <b>힌트 글자</b>입니다.<br />
-            • 순위는 <b>제출 순서</b>와 <b>풀이 시간</b>으로 가립니다.
-          </div>
+          <ul class="rules">
+            <li><b>시작하기</b>를 누르면 풀이 시간이 측정돼요</li>
+            <li>칸을 채우고 <b>정답 확인</b> 후 <b>제출</b>하세요</li>
+            <li>색이 칠해진 칸은 미리 주어진 <b>힌트 글자</b>예요</li>
+            <li>순위는 <b>제출 순서</b>와 <b>풀이 시간</b>으로 가립니다</li>
+          </ul>
           <div class="intro-form">
             <div class="row">
               <div>
@@ -144,6 +145,7 @@
           <button data-scope="today" data-sort="order">일일·제출순</button>
           <button data-scope="today" data-sort="time">일일·시간순</button>
         </div>
+        <div id="podium" class="podium"></div>
         <div class="tbl-scroll">
           <table>
             <thead>

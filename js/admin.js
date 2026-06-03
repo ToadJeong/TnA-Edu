@@ -4,7 +4,7 @@ import {
   renderGrid,
   packComponents,
   splitSyllables,
-} from "./crossword.js?v=20";
+} from "./crossword.js?v=21";
 import {
   listPuzzles,
   loadPuzzle,
@@ -16,8 +16,8 @@ import {
   listSubmissions,
   clearSubmissions,
   isConfigured,
-} from "./store.js?v=20";
-import { ADMIN_PASSWORD } from "./firebase-config.js?v=20";
+} from "./store.js?v=21";
+import { ADMIN_PASSWORD } from "./firebase-config.js?v=21";
 
 const $ = (id) => document.getElementById(id);
 

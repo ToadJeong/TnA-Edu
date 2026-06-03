@@ -1,7 +1,7 @@
 // app.js — 참가자 페이지 로직
-import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=20";
-import { loadActivePuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=20";
-import { EVENT } from "./firebase-config.js?v=20";
+import { buildLayout, renderGrid, revealRandomCell } from "./crossword.js?v=21";
+import { loadActivePuzzle, addSubmission, listSubmissions, isConfigured } from "./store.js?v=21";
+import { EVENT } from "./firebase-config.js?v=21";
 
 const $ = (id) => document.getElementById(id);
 
@@ -342,9 +342,11 @@ async function openRanking() {
   try {
     rankAll = await listSubmissions(activePuzzleId);
     renderRanking();
+    startFireworks();
   } catch (e) {
     console.error(e);
     $("rankBody").innerHTML = "";
+    $("podium").innerHTML = "";
     $("rankStatus").textContent = "랭킹을 불러오지 못했어요.";
   }
 }
@@ -355,20 +357,46 @@ function renderRanking() {
     list.sort((a, b) => (a.durationMs ?? Infinity) - (b.durationMs ?? Infinity));
   else list.sort((a, b) => (a.createdAtMs ?? Infinity) - (b.createdAtMs ?? Infinity));
   $("rankMetricHead").textContent = rankSort === "time" ? "풀이 시간" : "제출 시각";
+
+  const metric = (s) =>
+    rankSort === "time" ? fmtClock(s.durationMs || 0) : fmtDateTime(s.createdAtMs);
   const medal = ["🥇", "🥈", "🥉"];
+
+  // 시상대(top3) — 2등·1등·3등 순으로 배치
+  const top = list.slice(0, 3);
+  const order = [1, 0, 2]; // 가운데가 1등
+  $("podium").innerHTML =
+    top.length === 0
+      ? ""
+      : order
+          .filter((idx) => top[idx])
+          .map((idx) => {
+            const s = top[idx];
+            return `<div class="pcard p${idx + 1}">
+              <div class="medal">${medal[idx]}</div>
+              <div class="pname">${escapeHtml(s.name)}</div>
+              <div class="pdept">${escapeHtml(s.department)}</div>
+              <div class="pmetric">${metric(s)}</div>
+            </div>`;
+          })
+          .join("");
+
+  // 표 — 1~3위 금/은/동, 4~10위 강조
   $("rankBody").innerHTML = list.length
     ? list
-        .map(
-          (s, i) => `
-      <tr class="${i === 0 ? "first" : ""}">
+        .map((s, i) => {
+          const cls =
+            i < 3 ? `rank-${i + 1}` : i < 10 ? "top10" : "";
+          return `<tr class="${cls}">
         <td><span class="rank-badge">${i + 1}</span>${i < 3 ? " " + medal[i] : ""}</td>
         <td>${escapeHtml(s.name)}</td>
         <td>${escapeHtml(s.department)}</td>
-        <td>${rankSort === "time" ? fmtClock(s.durationMs || 0) : fmtDateTime(s.createdAtMs)}</td>
-      </tr>`
-        )
+        <td>${metric(s)}</td>
+      </tr>`;
+        })
         .join("")
     : '<tr><td colspan="4" class="muted">아직 기록이 없어요.</td></tr>';
+
   const n = new Date();
   const p = (x) => String(x).padStart(2, "0");
   const today = `${n.getFullYear()}-${p(n.getMonth() + 1)}-${p(n.getDate())}`;
@@ -376,10 +404,37 @@ function renderRanking() {
     (rankScope === "today" ? `📅 오늘 ${today} · ` : "전체 · ") + `${list.length}명`;
 }
 function closeRanking() {
+  stopFireworks();
   $("rankCard").classList.add("hidden");
   if (prevView === "done") $("doneCard").classList.remove("hidden");
   else if (prevView === "game") $("gameArea").classList.remove("hidden");
   else $("introCard").classList.remove("hidden");
+}
+
+// 랭킹 화면 폭죽(상단에서 계속 터짐)
+let fwTimer = null;
+async function startFireworks() {
+  stopFireworks();
+  const colors = ["#e8c356", "#cfd3da", "#cf9356", "#b06a4f", "#8c7a5e", "#c2a06a"];
+  const burst = async () => {
+    try {
+      if (_confettiLib === null) {
+        const mod = await import(
+          "https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.module.mjs"
+        );
+        _confettiLib = mod.default;
+      }
+      const c = _confettiLib;
+      c({ particleCount: 36, spread: 60, startVelocity: 42, gravity: 0.9, ticks: 120,
+        origin: { x: 0.15 + Math.random() * 0.7, y: 0.12 + Math.random() * 0.18 }, colors });
+    } catch (_) {}
+  };
+  burst();
+  fwTimer = setInterval(burst, 1100);
+}
+function stopFireworks() {
+  if (fwTimer) clearInterval(fwTimer);
+  fwTimer = null;
 }
 
 async function init() {

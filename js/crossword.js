@@ -580,14 +580,17 @@ export function renderGrid(layout, opts = {}) {
     }, 0);
   });
   caret.addEventListener("input", (e) => {
-    // 한 칸에 2글자 이상 쌓이면(주로 모바일) 앞 글자부터 다음 칸으로 보냄
-    if (Array.from(caret.value).length >= 2) {
-      spillOver(Array.from(caret.value));
-      return;
-    }
-    if (e.isComposing || composing) return; // 조합 중엔 이동/확정하지 않음
+    // 조합(IME) 중에는 절대 건드리지 않음 → 받침/이중모음이 깨지지 않음
+    if (e.isComposing || composing) return;
     if (skipNextInput) {
       skipNextInput = false;
+      return;
+    }
+    // 조합이 아닌데 2글자 이상 쌓였으면(조합 이벤트가 없는 키보드/붙여넣기)
+    // 앞 글자부터 다음 칸으로 흘려보냄
+    const chars = Array.from(caret.value);
+    if (chars.length >= 2) {
+      spillOver(chars);
       return;
     }
     handleCommit();
